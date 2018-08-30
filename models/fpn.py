@@ -74,7 +74,6 @@ class FPN(nn.Module):
         self.outconv1 = nn.Sequential(
             nn.Conv2d(4*nb_class, nb_class, 3, padding=1),
             nn.Sigmoid() if nb_class==1 else nn.Softmax(dim=1),)
-        self.outconv2 = ZeroOut(4*nb_class, nb_class, zks)
 
 
     def forward(self, x):
@@ -108,7 +107,7 @@ class FPN(nn.Module):
         out_1 = self.sideconv1(ux1)
 
         cat = torch.cat([up4, up3, up2, out_1], dim=1)
-        return self.outconv1(cat), self.outconv2(cat)
+        return self.outconv1(cat)
 
 
 class FPNvgg16(nn.Module):
@@ -168,7 +167,6 @@ class FPNvgg16(nn.Module):
         self.outconv1 = nn.Sequential(
             nn.Conv2d(4*nb_class, nb_class, 3, padding=1),
             nn.Sigmoid() if nb_class==1 else nn.Softmax(dim=1),)
-        self.outconv2 = ZeroOut(4*nb_class, nb_class, zks)
 
     def forward(self, x):
         dx11 = self.downblock1(x)
@@ -201,7 +199,7 @@ class FPNvgg16(nn.Module):
         out_1 = self.sideconv1(ux1)
 
         cat = torch.cat([up4, up3, up2, out_1], dim=1)
-        return self.outconv1(cat), self.outconv2(cat)
+        return self.outconv1(cat)
 
 
 if __name__ == "__main__":
@@ -215,11 +213,9 @@ if __name__ == "__main__":
     generator = FPN(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
     print("FPN->:")
-    print(" Network output1 ", gen_y[0].shape)
-    print(" Network output2 ", gen_y[1].shape)
+    print(" Network output ", gen_y.shape)
 
     generator = FPNvgg16(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
     print("FPNvgg16->:")
-    print(" Network output1 ", gen_y[0].shape)
-    print(" Network output2 ", gen_y[1].shape)
+    print(" Network output ", gen_y.shape)

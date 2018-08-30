@@ -63,7 +63,6 @@ class SegNet(nn.Module):
         self.outconv1 = nn.Sequential(
             nn.Conv2d(kernels[0], nb_class, 1),
             nn.Sigmoid() if nb_class==1 else nn.Softmax(dim=1),)
-        self.outconv2 = ZeroOut(kernels[0], 1, zks)
 
     def forward(self, x):
         initconv = self.inputconv(x)
@@ -84,7 +83,7 @@ class SegNet(nn.Module):
         ux2 = self.upblock2(ux3, max_2_indices, dx21.size())
         ux1 = self.upblock1(ux2, max_1_indices, dx11.size())
 
-        return self.outconv1(ux1), self.outconv2(ux1)
+        return self.outconv1(ux1)
 
 
 class SegNetvgg16(nn.Module):
@@ -133,7 +132,6 @@ class SegNetvgg16(nn.Module):
         self.outconv1 = nn.Sequential(
             nn.Conv2d(kernels[0], nb_class, 1),
             nn.Sigmoid() if nb_class==1 else nn.Softmax(dim=1),)
-        self.outconv2 = ZeroOut(kernels[0], 1, zks)
 
     def forward(self, x):
         initconv = self.inputconv(x)
@@ -153,7 +151,7 @@ class SegNetvgg16(nn.Module):
         ux2 = self.upblock2(ux3, max_2_indices, dx21.size())
         ux1 = self.upblock1(ux2, max_1_indices, dx11.size())
 
-        return self.outconv1(ux1), self.outconv2(ux1)
+        return self.outconv1(ux1)
 
 
 
@@ -168,11 +166,9 @@ if __name__ == "__main__":
     generator = SegNet(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
     print("SegNet->:")
-    print(" Network output1 ", gen_y[0].shape)
-    print(" Network output2 ", gen_y[1].shape)
+    print(" Network output ", gen_y.shape)
 
     generator = SegNetvgg16(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
     print("SegNetvgg16->:")
-    print(" Network output1 ", gen_y[0].shape)
-    print(" Network output2 ", gen_y[1].shape)
+    print(" Network output ", gen_y.shape)

@@ -13,22 +13,6 @@ import torch
 import torch.nn as nn
 
 
-class ZeroOut(nn.Module):
-    def __init__(self, in_ch, out_ch, kernel_size):
-        super(ZeroOut, self).__init__()
-        # calculate padding
-        ka = kernel_size // 2
-        kb = ka - 1 if kernel_size % 2 == 0 else ka
-        # convolution
-        self.zero = nn.Sequential(
-            nn.ReflectionPad2d((ka,kb,ka,kb)),
-            nn.Conv2d(in_ch, out_ch, kernel_size),
-            nn.Sigmoid() if out_ch==1 else nn.Softmax(dim=1),)
-
-    def forward(self, x):
-        return self.zero(x)
-
-
 class ConvBlock(nn.Module):
     def __init__(self, in_ch, out_ch, is_bn=False, is_leaky=False, alpha=0.1):
         super(ConvBlock, self).__init__()

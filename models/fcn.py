@@ -96,15 +96,13 @@ class FCN32s(nn.Module):
 
         # generate output
         self.outconv1 = nn.Sigmoid() if nb_class == 1 else nn.Softmax(dim=1)
-        self.outconv2 = ZeroOut(nb_class, 1, zks)
 
     def forward(self, x):
         conv5, conv4, conv3 = self.backend(x)
 
         score = self.classifier(conv5)
         up = F.upsample(score, x.size()[2:], mode='bilinear')
-        return self.outconv1(up), self.outconv2(up)
-
+        return self.outconv1(up)
 
 class FCN16s(nn.Module):
     def __init__(self,
@@ -130,7 +128,6 @@ class FCN16s(nn.Module):
 
         # generate output
         self.outconv1 = nn.Sigmoid() if nb_class == 1 else nn.Softmax(dim=1)
-        self.outconv2 = ZeroOut(nb_class, 1, zks)
 
     def forward(self, x):
         conv5, conv4, conv3 = self.backend(x)
@@ -142,7 +139,7 @@ class FCN16s(nn.Module):
         score += score_pool4
         up = F.upsample(score, x.size()[2:], mode='bilinear')
 
-        return self.outconv1(up), self.outconv2(up)
+        return self.outconv1(up)
 
 
 class FCN8s(nn.Module):
@@ -170,7 +167,6 @@ class FCN8s(nn.Module):
 
         # generate output
         self.outconv1 = nn.Sigmoid() if nb_class == 1 else nn.Softmax(dim=1)
-        self.outconv2 = ZeroOut(nb_class, 1, zks)
 
     def forward(self, x):
         conv5, conv4, conv3 = self.backend(x)
@@ -185,7 +181,7 @@ class FCN8s(nn.Module):
         score += score_pool3
         up = F.upsample(score, x.size()[2:], mode='bilinear')
 
-        return self.outconv1(up), self.outconv2(up)
+        return self.outconv1(up)
 
 
 if __name__ == "__main__":
@@ -199,17 +195,14 @@ if __name__ == "__main__":
     generator = FCN32s(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
     print("FCN32s->:")
-    print(" Network output1 ", gen_y[0].shape)
-    print(" Network output2 ", gen_y[1].shape)
+    print(" Network output1 ", gen_y.shape)
 
     generator = FCN16s(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
     print("FCN16s->:")
-    print(" Network output1 ", gen_y[0].shape)
-    print(" Network output2 ", gen_y[1].shape)
+    print(" Network output1 ", gen_y.shape)
 
     generator = FCN8s(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
     print("FCN8s->:")
-    print(" Network output1 ", gen_y[0].shape)
-    print(" Network output2 ", gen_y[1].shape)
+    print(" Network output1 ", gen_y.shape)
