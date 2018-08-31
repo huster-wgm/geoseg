@@ -46,7 +46,7 @@ def main(args):
         net.model.parameters(), lr=args.lr, betas=optim_betas)
 
     # initialize runner
-    run = Trainer(args, method, is_multi=True)
+    run = Trainer(args, method, is_multi=False)
 
     print("Start training {}...".format(method))
     run.training(net, [datasets.train, datasets.val])

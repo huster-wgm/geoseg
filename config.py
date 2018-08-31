@@ -14,9 +14,9 @@ class LSdataset(object):
     """
 
     def __init__(self):
-        self.train = nzLS("train")
-        self.val = nzLS("val")
-        self.test = nzLS("test")
+        self.train = nzLS("nz-train-slc", "train")
+        self.val = nzLS("nz-train-slc", "val")
+        self.test = nzLS("nz-test-slc", "all")
         self.in_ch = 3
         self.out_ch = self.train.nb_class
 
@@ -27,10 +27,10 @@ class LSSubdataset(object):
     """
 
     def __init__(self):
-        self.train8xsub = nzLS8xsub("train")
-        self.train = nzLS("train")
-        self.val = nzLS("val")
-        self.test = nzLS("test")
+        self.train8xsub = nzLS8xsub("nz-train-slc", "train")
+        self.train = nzLS("nz-train-slc", "train")
+        self.val = nzLS("nz-train-slc", "val")
+        self.test = nzLS("nz-test-slc", "all")
         self.in_ch = 3
         self.out_ch = self.train.nb_class
 
@@ -41,10 +41,10 @@ class LSEdataset(object):
     """
 
     def __init__(self):
-        self.trainLSE = nzLSE("train")
-        self.train = nzLS("train")
-        self.val = nzLS("val")
-        self.test = nzLS("test")
+        self.trainLSE = nzLSE("nz-train-slc", "train")
+        self.train = nzLS("nz-train-slc", "train")
+        self.val = nzLS("nz-train-slc", "val")
+        self.test = nzLS("nz-test-slc", "all")
         self.in_ch = 3
         self.out_ch = self.train.nb_class
 

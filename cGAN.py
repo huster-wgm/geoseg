@@ -67,7 +67,7 @@ def main(args):
         net.discriminator.parameters(), lr=args.d_lr, betas=optim_betas)
 
     # initialize runner
-    run = cganTrainer(args, method, is_multi=True)
+    run = cganTrainer(args, method, is_multi=False)
 
     print("Start training {}...".format(method))
     run.training(net, [datasets.train, datasets.val])
