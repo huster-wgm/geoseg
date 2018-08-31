@@ -26,13 +26,13 @@ Utils_DIR = os.path.dirname(os.path.abspath(__file__))
 class NewZealand(data.Dataset):
     """ 'NewZealand' dataset object
     args:
-        partition: (str) partition of the data ['train', 'test']
+        partition: (str) partition of the data ['nz-train-slc', 'nz-test-slc']
         split: (str) split of the data ['train', 'val', 'all']
     """
 
-    def __init__(self, split='train'):
+    def __init__(self, partition='nz-train-slc', split='train'):
         self.dataset = os.path.join(
-            Utils_DIR, '../dataset', 'nz-slc')
+            Utils_DIR, '../dataset', partition)
 
         self._landpath = os.path.join(self.dataset, 'land', '%s')
         self._segpath = os.path.join(self.dataset, 'segmap', '%s')
@@ -176,21 +176,21 @@ class nzLSE(NewZealand):
 if __name__ == "__main__":
     # ====================== parameter initialization ======================= #
     parser = argparse.ArgumentParser(description='ArgumentParser')
-    parser.add_argument('-partition', type=str, default='train',
-                        help='partition within ["train", "test"] ')
+    parser.add_argument('-partition', type=str, default='nz-train-slc',
+                        help='partition within of the dataset ')
     parser.add_argument('-split', type=str, default='all',
                         help='split of the data within ["train","val","test","all"]')
     args = parser.parse_args()
 
     # NewZealand dataset
-    lsdata = nzLS(args.split)
+    lsdata = nzLS(args.partition, args.split)
     land, seg = lsdata[0]
     lsdata.show(0)
 
-    ls8xdata = nzLS8xsub(args.split)
+    ls8xdata = nzLS8xsub(args.partition, args.split)
     land, seg, seg8x = ls8xdata[0]
     ls8xdata.show(0)
 
-    lsedata = nzLSE(args.split)
+    lsedata = nzLSE(args.partition, args.split)
     land, seg, edge = lsedata[0]
     lsedata.show(0)
