@@ -39,22 +39,16 @@
 
 ## Model Performance
 
-### Accuracy Performance
-* Overall-accuracy
-![oa](./result/excel/overall-accuracy.png)
-* Precision
-![precision](./result/excel/precision.png)
-* Recall
-![recall](./result/excel/recall.png)
-* Kappa
+### Performance
+* Kappa coefficient
 ![kappa](./result/excel/kappa.png)
-* Jaccard
+* Jaccard index (IoU)
 ![jaccard](./result/excel/jaccard.png)
 
-### Computational Performance
-* Time cost
+### Computational efficiency
+* Train FPS
 ![time](./result/excel/prediction%20time.png)
-* FPS
+* Test FPS
 ![fps](./result/excel/prediction%20fps.png)
 
 ## Visualization Samples
