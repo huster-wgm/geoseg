@@ -40,16 +40,12 @@
 ## Model Performance
 
 ### Performance
-* Kappa coefficient
-![kappa](./result/excel/kappa.png)
-* Jaccard index (IoU)
-![jaccard](./result/excel/jaccard.png)
+* Overall accuracy, precision, recall, f1-score, jaccard index(IoU) and kappa coefficient
+![performance](./result/excel/performance.png)
 
 ### Computational efficiency
-* Train FPS
-![time](./result/excel/prediction%20time.png)
-* Test FPS
-![fps](./result/excel/prediction%20fps.png)
+* Train and Test FPS
+![time](./result/excel/Computational efficiency.png)
 
 ## Visualization Samples
 
@@ -59,12 +55,12 @@
 
 ### Segmentation and outline extraction
 * FCN8s
-![FCN8s segmentation maps](./result/single/FCN8s_canny_segmap_edge_0.png)
+![FCN8s segmentation maps](./result/single/FCN8s_canny_segmap_edge_1.png)
 
 ### Segmentation result comparison
 * FCN32s, FCN16s, FCN8s
-![FCN8s, FCN16s, FCN32s](./result/single-comparison/segmap_FCN32s_FCN16s_FCN8s_0.png)
+![FCN8s, FCN16s, FCN32s](./result/single-comparison/segmap_FCN32s_FCN16s_FCN8s_1.png)
 
 ### Edge extraction result comparison
 * FCN32s, FCN16s, FCN8s
-![FCN8s, FCN16s, FCN32s](./result/single-comparison/edge_FCN32s_FCN16s_FCN8s_0.png)
+![FCN8s, FCN16s, FCN32s](./result/single-comparison/edge_FCN32s_FCN16s_FCN8s_1.png)
