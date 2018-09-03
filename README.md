@@ -1,71 +1,39 @@
 # Geoseg - An Package for Automatic Building Segmentation and Outline extraction via  Deep Learning
 
 ## Structure of directories
-### Directory for dataset
+### sub directories
 ```
-├── dataset
+├── dataset/
 │   └── NewZealand
-│       ├── land
-│       └── segmap
-
-```
-### Directory for saving logs
-```
-├── logs
-│   ├── learning-curve
-│   ├── statistic
-│   └── training
-```
-### Directory for model files
-```
-├── models
-│   ├── __init__.py
-│   ├── blockunits.py
-│   ├── fcn.py
-│   ├── fpn.py
-│   ├── lenet.py
-│   ├── linknet.py
-│   ├── mcfcn.py
-│   ├── mtfcn.py
-│   ├── resunet.py
-│   └── unet.py
-```
-### Directory for result
-```
-├── result
+├── logs/
+│   ├── learning curve, loging, statistic etc.
+├── models/
+│   ├── fcn, fpn, u-nt, segnet, etc.
+├── result/
 │   ├── comparison
 │   ├── excel
 │   └── single
-```
-### Directory for utils
-```
-├── utils
-│   ├── __init__.py
+├── utils/
 │   ├── datasets.py
 │   ├── metrics.py
 │   ├── preprocess.py
 │   ├── runner.py
 │   └── vision.py
 ```
-### Files used for training & evaluating model
+### Files used for training model
 ```
-├── GAN.py
-├── PatchGAN.py
-├── cGAN.py
 ├── FCNs.py
 ├── FPN.py
 ├── UNet.py
-├── mtFCN.py
-├── LinkNet.py
 ├── MC-FCN.py
+├── BR-Net.py
 ├── ResUNet.py
 ...
 ```
 ### Files for generate visualization
 ```
-├── genArea.py
-├── genComparison.py
-├── genSingle.py
+├── visSingle.py
+├── visSingleComparison.py
 ...
 ```
 
@@ -93,16 +61,16 @@
 
 ### Learning Curve
 * FCN8s
-![FCN8s training curve](./logs/learning-curve/FCN8s_iter_10000.png)
+![FCN8s training curve](./logs/curve/FCN8s_iter_5000.png)
 
-### Segmentation and ouline extraction
+### Segmentation and outline extraction
 * FCN8s
-![FCN8s segmentation maps](./result/single/FCN8s_segmap_edge_0.png)
+![FCN8s segmentation maps](./result/single/FCN8s_canny_segmap_edge_0.png)
 
 ### Segmentation result comparison
-* FCN8s, FCN16s, FCN32s
-![FCN8s, FCN16s, FCN32s](./result/single-comparison/segmap_FCN8s_FCN16s_FCN32s_0.png)
+* FCN32s, FCN16s, FCN8s
+![FCN8s, FCN16s, FCN32s](./result/single-comparison/segmap_FCN32s_FCN16s_FCN8s_0.png)
 
 ### Edge extraction result comparison
-* FCN8s, FCN16s, FCN32s
-![FCN8s, FCN16s, FCN32s](./result/single-comparison/edge_FCN8s_FCN16s_FCN32s_0.png)
+* FCN32s, FCN16s, FCN8s
+![FCN8s, FCN16s, FCN32s](./result/single-comparison/edge_FCN32s_FCN16s_FCN8s_0.png)

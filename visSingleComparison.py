@@ -16,7 +16,7 @@ from skimage.io import imsave
 from utils import vision
 from utils import metrics
 from utils.runner import load_checkpoint
-from utils.datasets import rs2018TrainDataset
+from utils.datasets import *
 from torch.utils.data import DataLoader
 from skimage.color import rgb2gray
 
@@ -38,7 +38,7 @@ def main(args):
     if not os.path.exists(os.path.join(Result_DIR, 'single-comparison')):
         os.mkdir(os.path.join(Result_DIR, 'single-comparison'))
     # setup dataset
-    dataset = rs2018TrainDataset(args.dataset, args.img_rows, args.img_cols, split='all', origin='vector')
+    dataset = nzLS(args.partition, "all")
     data_loader = DataLoader(dataset, args.disp_cols, num_workers=4, shuffle=False)
     batch_iterator = iter(data_loader)
     # setup visualization parameter
@@ -91,7 +91,7 @@ def main(args):
             model.eval()
 
             # generate prediction
-            if checkpoint.startswith("MC") or checkpoint.startswith("mt"):
+            if checkpoint.startswith("MC") or checkpoint.startswith("BR"):
                 y_pred = model(x)[0]
             else:
                 y_pred = model(x)
@@ -168,7 +168,7 @@ if __name__ == "__main__":
                         help='target for model prediction [segmap, edge]')
     parser.add_argument('-edge_fn', type=str, default='canny', choices=['shift', 'canny'],
                         help='method used for edge extraction')
-    parser.add_argument('-gen_nb', type=int, default=2,
+    parser.add_argument('-gen_nb', type=int, default=5,
                         help='number of generated image ')
     parser.add_argument('-eval_fn', type=str, default='kappa', choices=['ov', 'precision', 'recall', 'f1_score', 'jaccard', 'kappa'],
                         help='method used for evaluate performance')
@@ -176,14 +176,10 @@ if __name__ == "__main__":
                         help='significant different level between methods ')
     parser.add_argument('-color', type=str, default='white',
                         help='background color for generated rgb result ')
-    parser.add_argument('-dataset', type=str, default="RS-2018/test",
-                        help='dataset path for loading ')
+    parser.add_argument('-partition', type=str, default="nz-test-vec",
+                        help='partition of dataset for loading ')
     parser.add_argument('-disk', type=int, default=2,
                         help='dilation level ')
-    parser.add_argument('-img_rows', type=int, default=224,
-                        help='img rows for croping ')
-    parser.add_argument('-img_cols', type=int, default=224,
-                        help='img cols for croping ')
     parser.add_argument('-batch_size', type=int, default=32,
                         help='batch size for model prediction ')
     parser.add_argument('-cuda', type=lambda x: (str(x).lower() == 'true'), default=False,

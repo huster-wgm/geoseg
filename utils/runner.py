@@ -46,6 +46,7 @@ class Base(object):
         self.epoch = 0
         self.iter = 0
         self.logs = []
+        self.headers = ["epoch", "iter", "train_loss", "train_acc", "train_time(sec)", "train_fps", "val_loss", "val_acc", "val_time(sec)", "val_fps"]
 
     def logging(self, verbose=True):
         self.logs.append([self.epoch, self.iter] +
@@ -57,10 +58,12 @@ class Base(object):
     def save_log(self):
         if not os.path.exists(os.path.join(Logs_DIR, 'raw')):
             os.makedirs(os.path.join(Logs_DIR, 'raw'))
+
         self.logs = pd.DataFrame(self.logs,
-                                 columns=["epoch", "iter", "train_loss", "train_acc", "train_time(sec)", "train_fps", "val_loss", "val_acc", "val_time(sec)", "val_fps"])
+                                 columns=self.headers)
+
         self.logs.to_csv("{}/raw/{}_{}_{}.csv".format(Logs_DIR, self.method, self.args.trigger,
-                                                      self.args.terminal), index=False)
+                                                      self.args.terminal), index=False, float_format='%.3f')
 
     def save_checkpoint(self, model, name=None):
         if self.args.cuda:
@@ -264,7 +267,7 @@ class Trainer(Base):
             logs = pd.DataFrame([])
         logs = logs.append(cur_log, ignore_index=True)
         logs.to_csv(os.path.join(Logs_DIR, 'statistic',
-                                 "{}.csv".format(split)), index=False)
+                                 "{}.csv".format(split)), index=False, float_format='%.3f')
 
 
 class brTrainer(Trainer):
