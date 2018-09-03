@@ -45,7 +45,7 @@
 
 ### Computational efficiency
 * Train and Test FPS
-![time](./result/excel/Computational efficiency.png)
+![time](./result/excel/computational-efficiency.png)
 
 ## Visualization Samples
 
