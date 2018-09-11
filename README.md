@@ -1,33 +1,30 @@
-# Geoseg - An Package for Automatic Building Segmentation and Outline extraction via  Deep Learning
+# Geoseg - A Computer Vision Package for Automatic Building Segmentation and Outline extraction
 
 ## Structure of directories
 ### sub directories
 ```
-├── dataset/
-│   └── NewZealand
-├── logs/
-│   ├── learning curve, loging, statistic etc.
-├── models/
-│   ├── fcn, fpn, u-nt, segnet, etc.
-├── result/
-│   ├── comparison
-│   ├── excel
-│   └── single
-├── utils/
-│   ├── datasets.py
-│   ├── metrics.py
-│   ├── preprocess.py
-│   ├── runner.py
-│   └── vision.py
-```
-### Files used for training model
-```
-├── FCNs.py
-├── FPN.py
-├── UNet.py
-├── MC-FCN.py
-├── BR-Net.py
-├── ResUNet.py
+Geoseg:
+  ├── dataset/
+  │   └── train, validate and test dataset
+  ├── logs/
+  │   ├── learning curve, logging, statistic, etc.
+  ├── models/
+  │   ├── fcn, fpn, u-net, segnet, etc.
+  ├── result/
+  │   └── quantitative & qualitative result
+  ├── utils/
+  │   ├── datasets.py
+  │   ├── metrics.py
+  │   ├── preprocess.py
+  │   ├── runner.py
+  │   └── vision.py
+  │  
+  ├── FCNs.py
+  ├── FPN.py
+  ├── UNet.py
+  ├── MC-FCN.py
+  ├── BR-Net.py
+  ├── ResUNet.py
 ...
 ```
 ### Files for generate visualization
@@ -64,3 +61,15 @@
 ### Edge extraction result comparison
 * FCN32s, FCN16s, FCN8s
 ![FCN8s, FCN16s, FCN32s](./result/single-comparison/edge_FCN32s_FCN16s_FCN8s_1.png)
+
+
+# Citation
+If it helps, please cite the paper.
+```
+@article{wu2018geoseg,
+  title={Geoseg: A Computer Vision Package for Automatic Building Segmentation and Outline Extraction},
+  author={Wu, Guangming and Guo, Zhiling},
+  journal={arXiv preprint arXiv:1809.03175},
+  year={2018}
+}
+```
