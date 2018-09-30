@@ -28,8 +28,7 @@ class ResUNet(nn.Module):
                  nb_channel=3,
                  nb_class=1,
                  base_kernel=64,
-                 is_leaky=False,
-                 zks=3):
+                 is_leaky=False,):
         super(ResUNet, self).__init__()
         # Currently hardcoded for ResNet-18
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
