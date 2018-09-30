@@ -78,8 +78,7 @@ class FCN32s(nn.Module):
     def __init__(self,
                  nb_channel=3,
                  nb_class=1,
-                 base_kernel=64,
-                 zks=3,):
+                 base_kernel=64,):
         super(FCN32s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 
@@ -108,8 +107,7 @@ class FCN16s(nn.Module):
     def __init__(self,
                  nb_channel=3,
                  nb_class=1,
-                 base_kernel=64,
-                 zks=3,):
+                 base_kernel=64,):
         super(FCN16s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 
@@ -146,8 +144,7 @@ class FCN8s(nn.Module):
     def __init__(self,
                  nb_channel=3,
                  nb_class=1,
-                 base_kernel=64,
-                 zks=3,):
+                 base_kernel=64,):
         super(FCN8s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 
