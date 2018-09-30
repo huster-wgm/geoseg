@@ -21,8 +21,7 @@ class FPN(nn.Module):
     def __init__(self,
                  nb_channel=3,
                  nb_class=1,
-                 base_kernel=64,
-                 zks=3,):
+                 base_kernel=64,):
         super(FPN, self).__init__()
         kernels = [x * base_kernel for x in [1, 2, 4, 8, 16]]
         # down&pooling
@@ -114,8 +113,7 @@ class FPNvgg16(nn.Module):
     def __init__(self,
                  nb_channel=3,
                  nb_class=1,
-                 base_kernel=64,
-                 zks=3,):
+                 base_kernel=64,):
         super(FPNvgg16, self).__init__()
         kernels = [x * base_kernel for x in [1, 2, 4, 8, 16]]
         # down&pooling
