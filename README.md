@@ -62,7 +62,23 @@ Geoseg:
 * FCN32s, FCN16s, FCN8s
 ![FCN8s, FCN16s, FCN32s](./result/single-comparison/edge_FCN32s_FCN16s_FCN8s_1.png)
 
+# Training dataset
+We provide an training dataset below:
+https://drive.google.com/file/d/1boGcJz9TyK9XB4GUhjCHVu8XGtbgjjbi/view?usp=sharing
 
+The location, scale and resolution of the dataset please refer to paper:
+```
+@article{wu2018boundary,
+  title={A boundary regulated network for accurate roof segmentation and outline extraction},
+  author={Wu, Guangming and Guo, Zhiling and Shi, Xiaodan and Chen, Qi and Xu, Yongwei and Shibasaki, Ryosuke and Shao, Xiaowei},
+  journal={Remote Sensing},
+  volume={10},
+  number={8},
+  pages={1195},
+  year={2018},
+  publisher={Multidisciplinary Digital Publishing Institute}
+}
+```
 # Citation
 If it helps, please cite the paper.
 ```
