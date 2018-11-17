@@ -67,7 +67,7 @@ Geoseg
 > * Upcoming ...
 
 - Step-by-step tutorial
-> Jupyter-notebook [LINK](./How-to/How-to.ipynd)
+> Jupyter-notebook [LINK](./How-to/How-to.ipynb)
 
 ### Performance
 
