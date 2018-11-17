@@ -1,13 +1,22 @@
 # Geoseg - A Computer Vision Package for Automatic Building Segmentation and Outline extraction
 
-## Structure of directories
-### sub directories
+## Table of Contents
+- <a href='#organization'>Organization</a>
+- <a href='#usage'>Usage</a>
+- <a href='#performance'>Performance</a>
+- <a href='#visualization'>Visualization</a>
+- <a href='#todo'>TODO</a>
+- <a href='#citation'>Citation</a>
+
+
+### Organization of Geoseg
+
+- Sub-directories
 ```
-Geoseg:
   ├── dataset/
   │   └── train, validate and test dataset
   ├── logs/
-  │   ├── learning curve, logging, statistic, etc.
+  │   ├── learning curve, statistic, etc.
   ├── models/
   │   ├── fcn, fpn, u-net, segnet, etc.
   ├── result/
@@ -18,7 +27,9 @@ Geoseg:
   │   ├── preprocess.py
   │   ├── runner.py
   │   └── vision.py
-  │  
+```
+- Files for training specific models
+```
   ├── FCNs.py
   ├── FPN.py
   ├── UNet.py
@@ -27,44 +38,20 @@ Geoseg:
   ├── ResUNet.py
 ...
 ```
-### Files for generate visualization
+- Files for evaluation and visualization
 ```
 ├── visSingle.py
 ├── visSingleComparison.py
 ...
 ```
+### Usage
 
-## Model Performance
+- Download repo.
+- Download dataset
+- Download pre-trainded models
 
-### Performance
-* Overall accuracy, precision, recall, f1-score, jaccard index(IoU) and kappa coefficient
-![performance](./result/excel/performance.png)
-
-### Computational efficiency
-* Train and Test FPS
-![time](./result/excel/computational-efficiency.png)
-
-## Visualization Samples
-
-### Learning Curve
-* FCN8s
-![FCN8s training curve](./logs/curve/FCN8s_iter_5000.png)
-
-### Segmentation and outline extraction
-* FCN8s
-![FCN8s segmentation maps](./result/single/FCN8s_canny_segmap_edge_1.png)
-
-### Segmentation result comparison
-* FCN32s, FCN16s, FCN8s
-![FCN8s, FCN16s, FCN32s](./result/single-comparison/segmap_FCN32s_FCN16s_FCN8s_1.png)
-
-### Edge extraction result comparison
-* FCN32s, FCN16s, FCN8s
-![FCN8s, FCN16s, FCN32s](./result/single-comparison/edge_FCN32s_FCN16s_FCN8s_1.png)
-
-# Training dataset
-We provide an training dataset below:
-https://drive.google.com/file/d/1boGcJz9TyK9XB4GUhjCHVu8XGtbgjjbi/view?usp=sharing
+We provide an training dataset [LINK]
+(https://drive.google.com/file/d/1boGcJz9TyK9XB4GUhjCHVu8XGtbgjjbi/view?usp=sharing)
 
 The location, scale and resolution of the dataset please refer to paper:
 ```
@@ -79,8 +66,30 @@ The location, scale and resolution of the dataset please refer to paper:
   publisher={Multidisciplinary Digital Publishing Institute}
 }
 ```
-# Citation
-If it helps, please cite the paper.
+### Performance
+
+1. Performance
+
+![performance](./result/excel/performance.png)
+
+2. Computational efficiency
+![time](./result/excel/computational-efficiency.png)
+
+### Visualization
+
+- Learning Curve
+![FCN8s training curve](./logs/curve/FCN8s_iter_5000.png)
+
+- Segmentation and outline extraction
+![FCN8s segmentation maps](./result/single/FCN8s_canny_segmap_edge_1.png)
+
+### TODO
+- Update to pytorch 0.4.0
+- Add support for more dataset
+
+### Citation
+
+If it helps, please cite the paper.[LINK](https://arxiv.org/pdf/1809.03175.pdf)
 ```
 @article{wu2018geoseg,
   title={Geoseg: A Computer Vision Package for Automatic Building Segmentation and Outline Extraction},
