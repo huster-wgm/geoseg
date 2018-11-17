@@ -4,3 +4,4 @@ checkpoint/*.pth
 result/area/*
 *.DS_Store
 __pycache__*
+.ipynb_checkpoints/*
