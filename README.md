@@ -68,12 +68,13 @@ Geoseg
 
 - Step-by-step tutorial
 > Jupyter-notebook [LINK](.How-to/How-to.ipynd)
+
 ### Performance
 
-1. Performance
+- Performance
 ![performance](./result/excel/performance.png)
 
-2. Computational efficiency
+- Computational efficiency
 ![time](./result/excel/computational.png)
 
 ### Visualization
