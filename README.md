@@ -72,9 +72,11 @@ Geoseg
 ### Performance
 
 - Performance
+
 ![performance](./result/excel/performance.png)
 
 - Computational efficiency
+
 ![time](./result/excel/computational.png)
 
 ### Visualization
@@ -89,7 +91,7 @@ Geoseg
 - Upgrade to pytorch 0.4.0
 - Add support for more dataset
 
-### Citations
+### Citation
 The location, scale and resolution of the dataset please refer to paper.[LINK](https://www.mdpi.com/2072-4292/10/8/1195/htm)
 ```
 @article{wu2018boundary,
