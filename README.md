@@ -52,7 +52,9 @@ Geoseg
 > git clone  https://github.com/huster-wgm/geoseg.git
 
 - Download dataset
-> Training dataset [LINK](https://drive.google.com/file/d/1boGcJz9TyK9XB4GUhjCHVu8XGtbgjjbi/view?usp=sharing). Details about the dataset can be found at <a href='#citation'>Citation</a>.
+> Training dataset [Google Drive](https://drive.google.com/file/d/1boGcJz9TyK9XB4GUhjCHVu8XGtbgjjbi/view?usp=sharing) or
+> [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA).
+Details about the dataset can be found at <a href='#citation'>Citation</a>.
 
 - Download pre-trainded models
 > 1. FCN8s_iter_5000.pth [LINK](https://drive.google.com/open?id=1KHs7coyXAipz8t5cN_lbTC4MOYi8FddI)
