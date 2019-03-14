@@ -56,16 +56,16 @@ Geoseg
 > [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA).
 Details about the dataset can be found at <a href='#citation'>Citation</a>.
 
-- Download pre-trainded models
-> 1. FCN8s_iter_5000.pth [LINK](https://drive.google.com/open?id=1KHs7coyXAipz8t5cN_lbTC4MOYi8FddI)
-> 2.  FCN16s_iter_5000.pth [LINK](https://drive.google.com/open?id=1wlORkMx_ykmHysShUKY4UcCYs-fVaen6)
-> 3. FCN32s_iter_5000.pth [LINK](https://drive.google.com/open?id=1OR_Sk66RAGtKrp0quvqazRkL0xtAH8RY)
-> 4. SegNet_iter_5000.pth [LINK](https://drive.google.com/open?id=1J0aRjFG-zOSSXnynm02VaYxjw1tjx-qC)
-> 5. UNet_iter_5000.pth [LINK](https://drive.google.com/open?id=17X0aCgRx3XXgH1fcfLoLwgcbWIzxZe5K)
-> 6. FPN_iter_5000.pth [LINK](https://drive.google.com/open?id=1fWrCnGQJBZTw7m5OZlQvH5-R_JJlBA-r)
-> 7. ResUNet_iter_5000.pth [LINK](https://drive.google.com/open?id=1jGs_PxEMXCshOzXdg9LuFJxe8kO39oxT)
-> 8. MC-FCN_iter_5000.pth [LINK](https://drive.google.com/open?id=1Kt_JmR0ZGXvK9kuTmDOek5l1SsHX4xhz)
-> 9. BR-Net_iter_5000.pth [LINK](https://drive.google.com/open?id=1rytD9tzAq2mne5yf3XEh-jTSHlvQvedT)
+- Download pre-trainded models [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing) or [Baidu Yun](https://pan.baidu.com/s/1ORYdDLDi5HzO1lU_1zsQUQ) with private code: uwxk
+> 1. FCN8s_iter_5000.pth
+> 2. FCN16s_iter_5000.pth
+> 3. FCN32s_iter_5000.pth
+> 4. SegNet_iter_5000.pth
+> 5. UNet_iter_5000.pth
+> 6. FPN_iter_5000.pth
+> 7. ResUNet_iter_5000.pth
+> 8. MC-FCN_iter_5000.pth
+> 9. BR-Net_iter_5000.pth
 > * Upcoming ...
 
 - Step-by-step tutorial
