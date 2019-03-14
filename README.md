@@ -56,7 +56,7 @@ Geoseg
 > [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA).
 Details about the dataset can be found at <a href='#citation'>Citation</a>.
 
-- Download pre-trainded models [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing) or [Baidu Yun](https://pan.baidu.com/s/1ORYdDLDi5HzO1lU_1zsQUQ) with private code: uwxk
+- Download pre-trainded models [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing) or [Baidu Yun](https://pan.baidu.com/s/1ORYdDLDi5HzO1lU_1zsQUQ) code: uwxk
 > 1. FCN8s_iter_5000.pth
 > 2. FCN16s_iter_5000.pth
 > 3. FCN32s_iter_5000.pth
