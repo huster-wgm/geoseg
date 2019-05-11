@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 """
-Created on Sun Dec 2 19:29:18 2017
-
-@author: Go-hiroaki
-
-network models in pytorch
+  @Email:  guangmingwu2010@gmail.com
+  @Copyright: go-hiroaki
+  @License: MIT
 """
 import sys
 sys.path.append('./models')
@@ -18,8 +16,8 @@ from blockunits import *
 
 class VGGbackend(nn.Module):
     def __init__(self,
-                 nb_channel=3,
-                 base_kernel=64):
+                 nb_channel,
+                 base_kernel):
         super(VGGbackend, self).__init__()
         self.nb_channel = nb_channel
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
@@ -76,9 +74,9 @@ class VGGbackend(nn.Module):
 
 class FCN32s(nn.Module):
     def __init__(self,
-                 nb_channel=3,
-                 nb_class=1,
-                 base_kernel=64,):
+                 nb_channel,
+                 nb_class,
+                 base_kernel,):
         super(FCN32s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 
@@ -105,9 +103,9 @@ class FCN32s(nn.Module):
 
 class FCN16s(nn.Module):
     def __init__(self,
-                 nb_channel=3,
-                 nb_class=1,
-                 base_kernel=64,):
+                 nb_channel,
+                 nb_class,
+                 base_kernel,):
         super(FCN16s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 
@@ -142,9 +140,9 @@ class FCN16s(nn.Module):
 
 class FCN8s(nn.Module):
     def __init__(self,
-                 nb_channel=3,
-                 nb_class=1,
-                 base_kernel=64,):
+                 nb_channel,
+                 nb_class,
+                 base_kernel,):
         super(FCN8s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 

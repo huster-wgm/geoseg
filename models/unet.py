@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 """
-Created on Sun Dec 2 19:29:18 2017
-
-@author: Go-hiroaki
-
-network models in pytorch
+  @Email:  guangmingwu2010@gmail.com
+  @Copyright: go-hiroaki
+  @License: MIT
 """
 import sys
 sys.path.append('./models')
@@ -23,7 +21,7 @@ class UNet(nn.Module):
                  nb_class=1,
                  base_kernel=64,):
         super(UNet, self).__init__()
-        kernels = [x * base_kernel for x in [1, 2, 4, 8, 16]]
+        kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
         # down&pooling
         self.downblock1 = UNetDownx2(
             nb_channel, kernels[0])
