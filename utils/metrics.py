@@ -1,76 +1,79 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 """
-  @CreateTime:   2018-01-26T16:50:00+09:00
-  @Email:  guangmingwu2010@gmail.com
-  @Copyright: go-hiroaki
+  @Email:  guangmingwu2010@gmail.com \
+           guozhilingty@gmail.com
+  @Copyright: go-hiroaki & Chokurei
   @License: MIT
 """
-import sys
-sys.path.append('./utils')
-
 import torch
-import numpy as np
-from datasets import *
-from torch.utils.data import DataLoader
-from scipy.spatial.distance import directed_hausdorff
 
 esp = 1e-5
 
 
-def _binarize(y_data, threshold=0.5):
+def _binarize(y_data, threshold):
     """
     args:
-        y_data : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-        threshold : [0.0, 1.0]
-    return binarized y_data
+        y_data : [float] 4-d tensor in [batch_size, channels, img_rows, img_cols]
+        threshold : [float] [0.0, 1.0]
+    return 3-d binarized [int] y_data
     """
     y_data[y_data < threshold] = 0.0
     y_data[y_data >= threshold] = 1.0
-    return y_data
+    return y_data[:,0,:,:].int()
+
+
+def _argmax(y_data, dim):
+    """
+    args:
+        y_data : 4-d tensor in [batch_size, channels, img_rows, img_cols]
+        dim : int
+    return 3-d [int] y_data
+    """
+    return torch.argmax(y_data, dim).int()
 
 
 def _get_tp(y_pred, y_true):
     """
     args:
-        y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-        y_pred : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-    return true_positive
+        y_true : [int] 3-d in [batch_size, img_rows, img_cols]
+        y_pred : [int] 3-d in [batch_size, img_rows, img_cols]
+    return [float] true_positive
     """
-    return torch.sum(y_true * y_pred)
+    return torch.sum(y_true * y_pred).float()
 
 
 def _get_fp(y_pred, y_true):
     """
     args:
-        y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-        y_pred : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-    return false_positive
+        y_true : 3-d ndarray in [batch_size, img_rows, img_cols]
+        y_pred : 3-d ndarray in [batch_size, img_rows, img_cols]
+    return [float] false_positive
     """
-    return torch.sum((1.0 - y_true) * y_pred)
+    return torch.sum((1 - y_true) * y_pred).float()
 
 
 def _get_tn(y_pred, y_true):
     """
     args:
-        y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-        y_pred : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-    return true_negative
+        y_true : 3-d ndarray in [batch_size, img_rows, img_cols]
+        y_pred : 3-d ndarray in [batch_size, img_rows, img_cols]
+    return [float] true_negative
     """
-    return torch.sum((1.0 - y_true) * (1.0 - y_pred))
+    return torch.sum((1 - y_true) * (1 - y_pred)).float()
 
 
 def _get_fn(y_pred, y_true):
     """
     args:
-        y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-        y_pred : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-    return false_negative
+        y_true : 3-d ndarray in [batch_size, img_rows, img_cols]
+        y_pred : 3-d ndarray in [batch_size, img_rows, img_cols]
+    return [float] false_negative
     """
-    return torch.sum(y_true * (1.0 - y_pred))
+    return torch.sum(y_true * (1 - y_pred)).float()
 
 
-def confusion_matrix(y_pred, y_true, threshold=0.5):
+def confusion_matrix(y_pred, y_true, dim=1, threshold=0.5):
     """
     args:
         y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
@@ -78,16 +81,31 @@ def confusion_matrix(y_pred, y_true, threshold=0.5):
         threshold : [0.0, 1.0]
     return confusion matrix
     """
-    if threshold:
+    batch_size, channels, img_rows, img_cols = y_true.shape
+    if channels == 1:
         y_pred = _binarize(y_pred, threshold)
-    nb_tp = _get_tp(y_pred, y_true)
-    nb_fp = _get_fp(y_pred, y_true)
-    nb_tn = _get_tn(y_pred, y_true)
-    nb_fn = _get_fn(y_pred, y_true)
-    return [nb_tp, nb_fp, nb_tn, nb_fn]
+        y_true = _binarize(y_true, threshold)
+    else:
+        y_pred = _argmax(y_pred, dim)
+        y_true = _argmax(y_true, dim)
+    performs = torch.zeros(channels, 4)
+    labels = torch.unique(y_true).flip(0)
+    labels = labels[labels <= channels]
+    for label in labels:
+        y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_true_l[y_true == label] = 1
+        y_pred_l[y_pred == label] = 1
+        nb_tp = _get_tp(y_pred_l, y_true_l)
+        nb_fp = _get_fp(y_pred_l, y_true_l)
+        nb_tn = _get_tn(y_pred_l, y_true_l)
+        nb_fn = _get_fn(y_pred_l, y_true_l)
+        performs[int(label), :] = [nb_tp, nb_fp, nb_tn, nb_fn]
+    mperforms = torch.sum(performs, 0) / len(labels)
+    return mperforms, performs
 
 
-def overall_accuracy(y_pred, y_true, threshold=0.5):
+def overall_accuracy(y_pred, y_true, dim=1, threshold=0.5):
     """
     args:
         y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
@@ -95,13 +113,21 @@ def overall_accuracy(y_pred, y_true, threshold=0.5):
         threshold : [0.0, 1.0]
     return (tp+tn)/total
     """
-    if threshold:
+    batch_size, channels, img_rows, img_cols = y_true.shape
+    if channels == 1:
         y_pred = _binarize(y_pred, threshold)
-    nb_tp_tn = torch.sum(y_true == y_pred)
-    return nb_tp_tn / (np.prod(y_true.shape))
+        y_true = _binarize(y_true, threshold)
+    else:
+        y_pred = _argmax(y_pred, dim)
+        y_true = _argmax(y_true, dim)
+
+    nb_tp_tn = torch.sum(y_true == y_pred).float()
+    mperforms = nb_tp_tn / (batch_size * img_rows * img_cols)
+    performs = None
+    return mperforms, performs
 
 
-def precision(y_pred, y_true, threshold=0.5):
+def precision(y_pred, y_true, dim=1, threshold=0.5):
     """
     args:
         y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
@@ -109,14 +135,29 @@ def precision(y_pred, y_true, threshold=0.5):
         threshold : [0.0, 1.0]
     return tp/(tp+fp)
     """
-    if threshold:
+    batch_size, channels, img_rows, img_cols = y_true.shape
+    if channels == 1:
         y_pred = _binarize(y_pred, threshold)
-    nb_tp = _get_tp(y_pred, y_true)
-    nb_fp = _get_fp(y_pred, y_true)
-    return nb_tp / (nb_tp + nb_fp + esp)
+        y_true = _binarize(y_true, threshold)
+    else:
+        y_pred = _argmax(y_pred, dim)
+        y_true = _argmax(y_true, dim)
+    performs = torch.zeros(channels, 1)
+    labels = torch.unique(y_true).flip(0)
+    labels = labels[labels <= channels]
+    for label in labels:
+        y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_true_l[y_true == label] = 1
+        y_pred_l[y_pred == label] = 1
+        nb_tp = _get_tp(y_pred_l, y_true_l)
+        nb_fp = _get_fp(y_pred_l, y_true_l)
+        performs[int(label)] = nb_tp / (nb_tp + nb_fp + esp)
+    mperforms = torch.sum(performs, 0) / len(labels)
+    return mperforms, performs
 
 
-def recall(y_pred, y_true, threshold=0.5):
+def recall(y_pred, y_true, dim=1, threshold=0.5):
     """
     args:
         y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
@@ -124,14 +165,29 @@ def recall(y_pred, y_true, threshold=0.5):
         threshold : [0.0, 1.0]
     return tp/(tp+fn)
     """
-    if threshold:
+    batch_size, channels, img_rows, img_cols = y_true.shape
+    if channels == 1:
         y_pred = _binarize(y_pred, threshold)
-    nb_tp = _get_tp(y_pred, y_true)
-    nb_fn = _get_fn(y_pred, y_true)
-    return nb_tp / (nb_tp + nb_fn + esp)
+        y_true = _binarize(y_true, threshold)
+    else:
+        y_pred = _argmax(y_pred, dim)
+        y_true = _argmax(y_true, dim)
+    performs = torch.zeros(channels, 1)
+    labels = torch.unique(y_true).flip(0)
+    labels = labels[labels <= channels]
+    for label in labels:
+        y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_true_l[y_true == label] = 1
+        y_pred_l[y_pred == label] = 1
+        nb_tp = _get_tp(y_pred_l, y_true_l)
+        nb_fn = _get_fn(y_pred_l, y_true_l)
+        performs[int(label)] = nb_tp / (nb_tp + nb_fn + esp)
+    mperforms = torch.sum(performs, 0) / len(labels)
+    return mperforms, performs
 
 
-def f1_score(y_pred, y_true, threshold=0.5):
+def f1_score(y_pred, y_true, dim=1, threshold=0.5):
     """
     args:
         y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
@@ -139,17 +195,33 @@ def f1_score(y_pred, y_true, threshold=0.5):
         threshold : [0.0, 1.0]
     return 2*precision*recall/(precision+recall)
     """
-    if threshold:
+    batch_size, channels, img_rows, img_cols = y_true.shape
+    if channels == 1:
         y_pred = _binarize(y_pred, threshold)
-    nb_tp = _get_tp(y_pred, y_true)
-    nb_fp = _get_fp(y_pred, y_true)
-    nb_fn = _get_fn(y_pred, y_true)
-    _precision = nb_tp / (nb_tp + nb_fp + esp)
-    _recall = nb_tp / (nb_tp + nb_fn + esp)
-    return 2 * _precision * _recall / (_precision + _recall + esp)
+        y_true = _binarize(y_true, threshold)
+    else:
+        y_pred = _argmax(y_pred, dim)
+        y_true = _argmax(y_true, dim)
+    performs = torch.zeros(channels, 1)
+    labels = torch.unique(y_true).flip(0)
+    labels = labels[labels <= channels]
+    for label in labels:
+        y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_true_l[y_true == label] = 1
+        y_pred_l[y_pred == label] = 1
+        nb_tp = _get_tp(y_pred_l, y_true_l)
+        nb_fp = _get_fp(y_pred_l, y_true_l)
+        nb_fn = _get_fn(y_pred_l, y_true_l)
+        _precision = nb_tp / (nb_tp + nb_fp + esp)
+        _recall = nb_tp / (nb_tp + nb_fn + esp)
+        performs[int(label)] = 2 * _precision * \
+            _recall / (_precision + _recall + esp)
+    mperforms = torch.sum(performs, 0) / len(labels)
+    return mperforms, performs
 
 
-def kappa(y_pred, y_true, threshold=0.5):
+def kappa(y_pred, y_true, dim=1, threshold=0.5):
     """
     args:
         y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
@@ -157,20 +229,35 @@ def kappa(y_pred, y_true, threshold=0.5):
         threshold : [0.0, 1.0]
     return (Po-Pe)/(1-Pe)
     """
-    if threshold:
+    batch_size, channels, img_rows, img_cols = y_true.shape
+    if channels == 1:
         y_pred = _binarize(y_pred, threshold)
-    nb_tp = _get_tp(y_pred, y_true)
-    nb_fp = _get_fp(y_pred, y_true)
-    nb_tn = _get_tn(y_pred, y_true)
-    nb_fn = _get_fn(y_pred, y_true)
-    nb_total = nb_tp + nb_fp + nb_tn + nb_fn
-    Po = (nb_tp + nb_tn) / nb_total
-    Pe = ((nb_tp + nb_fp) * (nb_tp + nb_fn) +
-          (nb_fn + nb_tn) * (nb_fp + nb_tn)) / (nb_total**2)
-    return (Po - Pe) / (1 - Pe + esp)
+        y_true = _binarize(y_true, threshold)
+    else:
+        y_pred = _argmax(y_pred, dim)
+        y_true = _argmax(y_true, dim)
+    performs = torch.zeros(channels, 1)
+    labels = torch.unique(y_true).flip(0)
+    labels = labels[labels <= channels]
+    for label in labels:
+        y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_true_l[y_true == label] = 1
+        y_pred_l[y_pred == label] = 1
+        nb_tp = _get_tp(y_pred_l, y_true_l)
+        nb_fp = _get_fp(y_pred_l, y_true_l)
+        nb_tn = _get_tn(y_pred_l, y_true_l)
+        nb_fn = _get_fn(y_pred_l, y_true_l)
+        nb_total = nb_tp + nb_fp + nb_tn + nb_fn
+        Po = (nb_tp + nb_tn) / nb_total
+        Pe = ((nb_tp + nb_fp) * (nb_tp + nb_fn)
+              + (nb_fn + nb_tn) * (nb_fp + nb_tn)) / (nb_total**2)
+        performs[int(label)] = (Po - Pe) / (1 - Pe + esp)
+    mperforms = torch.sum(performs, 0) / len(labels)
+    return mperforms, performs
 
 
-def jaccard(y_pred, y_true, threshold=0.5):
+def jaccard(y_pred, y_true, dim=1, threshold=0.5):
     """
     args:
         y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
@@ -178,60 +265,74 @@ def jaccard(y_pred, y_true, threshold=0.5):
         threshold : [0.0, 1.0]
     return intersection / (sum-intersection)
     """
-    if threshold:
+    batch_size, channels, img_rows, img_cols = y_true.shape
+    if channels == 1:
         y_pred = _binarize(y_pred, threshold)
-    _intersection = torch.sum(y_true * y_pred)
-    _sum = torch.sum(y_true + y_pred)
-    return _intersection / (_sum - _intersection + esp)
+        y_true = _binarize(y_true, threshold)
+    else:
+        y_pred = _argmax(y_pred, dim)
+        y_true = _argmax(y_true, dim)
+    performs = torch.zeros(channels, 1)
+    labels = torch.unique(y_true).flip(0)
+    labels = labels[labels <= channels]
+    for label in labels:
+        y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+        y_true_l[y_true == label] = 1
+        y_pred_l[y_pred == label] = 1
+        _intersec = torch.sum(y_true_l * y_pred_l).float()
+        _sum = torch.sum(y_true_l + y_pred_l).float()
+        performs[int(label)] = _intersec / (_sum - _intersec + esp)
+    mperforms = torch.sum(performs, 0) / len(labels)
+    return mperforms, performs
 
 
-def img_to_pos_vec(img):
+def create_fake_data(batch_size, channels, img_rows, img_cols):
     """
     args:
-        img : 2-d ndarray in [img_rows, img_cols], values in [0,1].
-    return position vector(where pixel value==1)
+        batch_size : int
+        channels : int
+        img_rows : int
+        img_cols : int
+    return y_pred_fake, y_true_fake
     """
-    idx = np.where(img == 1)
-    pos_vec = [[x, y] for x, y in zip(idx[0], idx[1])]
-    return pos_vec
+    pixel = img_cols // channels
+    border = 1
+    y_true = torch.zeros(batch_size, img_rows, img_cols)
+    for i in range(channels):
+        y_true[:, :, i*pixel:(i+1)*pixel] = i
+    y_pred = y_true.clone()
+    y_pred[:, :border, :] = 0
+    y_pred[:, img_rows-border:, :] = 0
 
-
-def hausdorff(y_pred, y_true, threshold=0.5):
-    """
-    args:
-        y_true : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-        y_pred : 4-d ndarray in [batch_size, channels, img_rows, img_cols]
-        threshold : [0.0, 1.0]
-    return hausdorff_distance
-    """
-    if threshold:
-        y_pred = _binarize(y_pred, threshold)
-    hs = 0
-    for i in range(y_pred.shape[0]):
-        img_pred = y_pred[i, 0, :, :]
-        img_true = y_true[i, 0, :, :]
-        pos_vec_pred = img_to_pos_vec(img_pred)
-        pos_vec_true = img_to_pos_vec(img_true)
-        hs += max(directed_hausdorff(pos_vec_pred, pos_vec_true)[0],
-                  directed_hausdorff(pos_vec_true, pos_vec_pred)[0])
-    return hs / y_pred.shape[0]
+    y_true_fake = torch.zeros(batch_size, channels, img_rows, img_cols)
+    y_pred_fake = torch.zeros(batch_size, channels, img_rows, img_cols)
+    for i in range(channels):
+        y_true_fake[:,i,:,:][y_true==i] = 1.0
+        y_pred_fake[:,i,:,:][y_pred==i] = 1.0
+    return y_pred_fake, y_true_fake
 
 
 if __name__ == "__main__":
-    img_rows, img_cols, batch_size = 224, 224, 32
-    dataset = nzLS(split="all")
-    data_loader = DataLoader(dataset, batch_size, num_workers=4,
-                             shuffle=False)
-    batch_iterator = iter(data_loader)
-    x, y_true = next(batch_iterator)
-    # add one row of noice in the middle
-    y_pred = np.copy(y_true)
-    y_pred[:, :, img_rows // 2, :] = 1
-    y_true = torch.FloatTensor(y_true)
-    y_pred = torch.FloatTensor(y_pred)
+    batch_size, channels, img_rows, img_cols = 1, 2, 5, 5
+    y_pred, y_true = create_fake_data(batch_size, channels, img_rows, img_cols)
+    # print(y_true.shape, torch.argmax(y_true, 1))
+    # print(y_pred.shape, torch.argmax(y_pred, 1))
 
-    matrix = confusion_matrix(y_pred, y_true)
-    print('confusion:', matrix)
+    maccu, accu = overall_accuracy(y_pred, y_true)
+    print('mAccu:', maccu, 'Accu', accu)
 
-    hs = hausdorff(y_pred, y_true)
-    print('hausdorff:', hs)
+    mprec, prec = precision(y_pred, y_true)
+    print('mPrec:', mprec, 'Prec', prec)
+
+    mreca, reca = recall(y_pred, y_true)
+    print('mReca:', mreca, 'Reca', reca)
+
+    mf1sc, f1sc = f1_score(y_pred, y_true)
+    print('mF1sc:', mf1sc, 'F1sc', f1sc)
+
+    mkapp, kapp = kappa(y_pred, y_true)
+    print('mKapp:', mkapp, 'Kapp', kapp)
+
+    mjacc, jacc = jaccard(y_pred, y_true)
+    print('mJacc:', mjacc, 'Jacc', jacc)
