@@ -1,6 +1,7 @@
 # Geoseg - A Computer Vision Package for Automatic Building Segmentation and Outline extraction
 
 ## Table of Contents
+- <a href='#requirements'>Requirements</a>
 - <a href='#organization'>Organization</a>
 - <a href='#usage'>Usage</a>
 - <a href='#performance'>Performance</a>
@@ -8,6 +9,10 @@
 - <a href='#todo'>TODO</a>
 - <a href='#citation'>Citation</a>
 
+### Requirements
+
+- Pytorch == 0.3.0
+- Python 3
 
 ### Organization
 - Subdirectories
