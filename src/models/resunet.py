@@ -1,19 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
   @Email:  guangmingwu2010@gmail.com
   @Copyright: go-hiroaki
   @License: MIT
 """
-import sys
-sys.path.append('./models')
 import numpy as np
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from blockunits import *
-from torch.autograd import Variable
+from .blocks import *
 
 
 class ResUNet(nn.Module):
@@ -116,10 +112,12 @@ if __name__ == "__main__":
     nb_channel = 3
     nb_class = 1
     base_kernel = 24
-    x = Variable(torch.FloatTensor(
-        np.random.random((1, nb_channel, 224, 224))), volatile=True)
+    x = torch.FloatTensor(
+        np.random.random((1, nb_channel, 224, 224)))
 
     generator = ResUNet(nb_channel, nb_class, base_kernel)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("ResUNet->:")
-    print(" Network output ", gen_y.shape)
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
+    print(" Network output: ", gen_y.shape)

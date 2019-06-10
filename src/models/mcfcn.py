@@ -1,18 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
   @Email:  guangmingwu2010@gmail.com
   @Copyright: go-hiroaki
   @License: MIT
 """
-import sys
-sys.path.append('./models')
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from blockunits import *
-from torch.autograd import Variable
+from .blocks import *
 
 
 class MCFCN(nn.Module):
@@ -99,16 +96,17 @@ class MCFCN(nn.Module):
 
 if __name__ == "__main__":
     # Hyper Parameters
-    # Hyper Parameters
     nb_channel = 3
     nb_class = 1
     base_kernel = 24
-    x = Variable(torch.FloatTensor(
-        np.random.random((1, nb_channel, 224, 224))), volatile=True)
+    x = torch.FloatTensor(
+        np.random.random((1, nb_channel, 224, 224)))
 
     generator = MCFCN(nb_channel, nb_class, base_kernel)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("MC-FCN->:")
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
     print(" Network output1 ", gen_y[0].shape)
     print(" Network output2 ", gen_y[1].shape)
     print(" Network output3 ", gen_y[2].shape)

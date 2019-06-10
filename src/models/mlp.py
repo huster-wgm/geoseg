@@ -1,9 +1,11 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-  @Email:  guangmingwu2010@gmail.com
-  @Copyright: go-hiroaki
-  @License: MIT
+Created on Sun Dec 2 19:29:18 2017
+
+@author: Go-hiroaki
+
+network models in pytorch
 """
 import sys
 sys.path.append('./models')

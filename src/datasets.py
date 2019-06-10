@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 """
-  @CreateTime:   2018-01-26T16:50:00+09:00
   @Email:  guangmingwu2010@gmail.com
   @Copyright: go-hiroaki
   @License: MIT
 """
-import sys
-sys.path.append('./utils')
 import os
 import numpy as np
 import pandas as pd
@@ -26,13 +23,13 @@ Utils_DIR = os.path.dirname(os.path.abspath(__file__))
 class NewZealand(data.Dataset):
     """ 'NewZealand' dataset object
     args:
-        partition: (str) partition of the data ['nz-train-slc', 'nz-test-slc']
+        root: (str) root of the data ['NewZealand', 'nz-test-slc']
         split: (str) split of the data ['train', 'val', 'all']
     """
 
-    def __init__(self, partition='nz-train-slc', split='train'):
+    def __init__(self, root='NewZealand', split='train'):
         self.dataset = os.path.join(
-            Utils_DIR, '../dataset', partition)
+            Utils_DIR, '../dataset', root)
 
         self._landpath = os.path.join(self.dataset, 'land', '%s')
         self._segpath = os.path.join(self.dataset, 'segmap', '%s')
@@ -43,10 +40,8 @@ class NewZealand(data.Dataset):
         self.ids = infos['id'].tolist()
 
         # get label class
-        self.nb_class = 1
-        # get img sizes
-        img_sam = imread(self._landpath % self.ids[0])
-        self.img_rows, self.img_cols = img_sam.shape[:2]
+        self.src_ch = 3
+        self.tar_ch = 1
 
     def __len__(self):
         return len(self.ids)
@@ -176,21 +171,21 @@ class nzLSE(NewZealand):
 if __name__ == "__main__":
     # ====================== parameter initialization ======================= #
     parser = argparse.ArgumentParser(description='ArgumentParser')
-    parser.add_argument('-partition', type=str, default='nz-train-slc',
-                        help='partition within of the dataset ')
+    parser.add_argument('-root', type=str, default='NewZealand',
+                        help='root within of the dataset ')
     parser.add_argument('-split', type=str, default='all',
                         help='split of the data within ["train","val","test","all"]')
     args = parser.parse_args()
 
     # NewZealand dataset
-    lsdata = nzLS(args.partition, args.split)
+    lsdata = nzLS(args.root, args.split)
     land, seg = lsdata[0]
     lsdata.show(0)
 
-    ls8xdata = nzLS8xsub(args.partition, args.split)
+    ls8xdata = nzLS8xsub(args.root, args.split)
     land, seg, seg8x = ls8xdata[0]
     ls8xdata.show(0)
 
-    lsedata = nzLSE(args.partition, args.split)
+    lsedata = nzLSE(args.root, args.split)
     land, seg, edge = lsedata[0]
     lsedata.show(0)

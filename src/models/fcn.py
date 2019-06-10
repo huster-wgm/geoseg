@@ -1,23 +1,21 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
   @Email:  guangmingwu2010@gmail.com
   @Copyright: go-hiroaki
   @License: MIT
 """
-import sys
-sys.path.append('./models')
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-from blockunits import *
+from .blocks import *
+
 
 class VGGbackend(nn.Module):
     def __init__(self,
-                 nb_channel,
-                 base_kernel):
+                 nb_channel=3,
+                 base_kernel=64):
         super(VGGbackend, self).__init__()
         self.nb_channel = nb_channel
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
@@ -74,9 +72,9 @@ class VGGbackend(nn.Module):
 
 class FCN32s(nn.Module):
     def __init__(self,
-                 nb_channel,
-                 nb_class,
-                 base_kernel,):
+                 nb_channel=3,
+                 nb_class=1,
+                 base_kernel=64,):
         super(FCN32s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 
@@ -98,14 +96,17 @@ class FCN32s(nn.Module):
         conv5, conv4, conv3 = self.backend(x)
 
         score = self.classifier(conv5)
-        up = F.upsample(score, x.size()[2:], mode='bilinear')
+        # up = F.upsample(score, x.size()[2:], mode='bilinear')
+        up = F.interpolate(score, x.size()[2:], mode='bilinear')
         return self.outconv1(up)
+
 
 class FCN16s(nn.Module):
     def __init__(self,
-                 nb_channel,
-                 nb_class,
-                 base_kernel,):
+                 nb_channel=3,
+                 nb_class=1,
+                 base_kernel=64,
+                 zks=3,):
         super(FCN16s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 
@@ -131,18 +132,20 @@ class FCN16s(nn.Module):
         score = self.classifier(conv5)
         score_pool4 = self.score_pool4(conv4)
 
-        score = F.upsample(score, score_pool4.size()[2:], mode='bilinear')
+        # score = F.upsample(score, score_pool4.size()[2:], mode='bilinear')
+        score = F.interpolate(score, score_pool4.size()[2:], mode='bilinear')
         score += score_pool4
-        up = F.upsample(score, x.size()[2:], mode='bilinear')
-
+        # up = F.upsample(score, x.size()[2:], mode='bilinear')
+        up = F.interpolate(score, x.size()[2:], mode='bilinear')
         return self.outconv1(up)
 
 
 class FCN8s(nn.Module):
     def __init__(self,
-                 nb_channel,
-                 nb_class,
-                 base_kernel,):
+                 nb_channel=3,
+                 nb_class=1,
+                 base_kernel=64,
+                 zks=3,):
         super(FCN8s, self).__init__()
         kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
 
@@ -170,12 +173,14 @@ class FCN8s(nn.Module):
         score_pool4 = self.score_pool4(conv4)
         score_pool3 = self.score_pool3(conv3)
 
-        score = F.upsample(score, score_pool4.size()[2:], mode='bilinear')
+        # score = F.upsample(score, score_pool4.size()[2:], mode='bilinear')
+        score = F.interpolate(score, score_pool4.size()[2:], mode='bilinear') 
         score += score_pool4
-        score = F.upsample(score, score_pool3.size()[2:], mode='bilinear')
+        # score = F.upsample(score, score_pool3.size()[2:], mode='bilinear')
+        score = F.interpolate(score, score_pool3.size()[2:], mode='bilinear')
         score += score_pool3
-        up = F.upsample(score, x.size()[2:], mode='bilinear')
-
+        # up = F.upsample(score, x.size()[2:], mode='bilinear')
+        up = F.interpolate(score, x.size()[2:], mode='bilinear')
         return self.outconv1(up)
 
 
@@ -184,20 +189,27 @@ if __name__ == "__main__":
     nb_channel = 3
     nb_class = 1
     base_kernel = 24
-    x = Variable(torch.FloatTensor(
-        np.random.random((1, nb_channel, 224, 224))), volatile=True)
+    x = torch.FloatTensor(
+        np.random.random((1, nb_channel, 224, 224)))
 
     generator = FCN32s(nb_channel, nb_class, base_kernel)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("FCN32s->:")
-    print(" Network output1 ", gen_y.shape)
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
+    print(" Network output: ", gen_y.shape)
+
 
     generator = FCN16s(nb_channel, nb_class, base_kernel)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("FCN16s->:")
-    print(" Network output1 ", gen_y.shape)
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
+    print(" Network output: ", gen_y.shape)
 
     generator = FCN8s(nb_channel, nb_class, base_kernel)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("FCN8s->:")
-    print(" Network output1 ", gen_y.shape)
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
+    print(" Network output: ", gen_y.shape)

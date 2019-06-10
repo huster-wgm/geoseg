@@ -1,19 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
   @Email:  guangmingwu2010@gmail.com
   @Copyright: go-hiroaki
   @License: MIT
 """
-import sys
-sys.path.append('./models')
 import numpy as np
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from blockunits import *
-from torch.autograd import Variable
+from .blocks import *
 
 
 class LinkNetUp(nn.Module):
@@ -165,7 +161,8 @@ class LinkNet(nn.Module):
 
 if __name__ == "__main__":
     # Hyper Parameters
-    x = Variable(torch.FloatTensor(np.random.random((1, 3, 224, 224))), volatile=True)
+    x = torch.FloatTensor(
+        np.random.random((1, 3, 224, 224)))
 
     generator = LinkNet(nb_channel=3, nb_class=1, base_kernel=64)
     gen_y = generator(x)

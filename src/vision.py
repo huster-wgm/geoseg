@@ -209,6 +209,48 @@ def slices_to_img(slices, shapes):
     return img
 
 
+def slices_to_tensor(img_slices, refs=None):
+    """
+    Convert img_slices to tensor
+    args:
+      img_slices: list of (ndarray) unit8
+      refs: None or array of label references
+    return tensors
+    """
+    img_arrays = np.array(img_slices)
+    if len(img_arrays.shape) == 3:
+        img_arrays = np.expand_dims(img_arrays, axis=-1)
+    if refs is not None:
+        labels = []
+        for idx in range(img_arrays.shape[0]):
+            labels.append(img_to_label(img_arrays[idx], refs))
+        img_arrays = np.array(labels)
+    else:
+        img_arrays = (img_arrays / 255).astype('float32')
+    img_arrays = img_arrays.transpose((0, 3, 1, 2))
+    return torch.FloatTensor(img_arrays)
+
+
+def tensor_to_slices(tensors, refs=None):
+    """
+    Convert tensors to img_slices
+    args:
+      tensors: (4d FloatTensor) [nb, channel, width, height]
+      refs: None or array of label references
+    return img_slices
+    """
+    tensors = tensors.numpy()
+    tensors = tensors.transpose((0, 2, 3, 1))
+    if refs is not None:
+        img_arrays = []
+        for idx in range(tensors.shape[0]):
+            img_arrays.append(label_to_img(tensors[idx], refs))
+        img_arrays = np.array(img_arrays)
+    else:
+        img_arrays = (tensors * 255).astype("uint8")
+    return img_arrays
+
+
 def natural_sort(l):
     # refer to  https://stackoverflow.com/questions/4836710/does-python-have-a-built-in-function-for-string-natural-sort
     def convert(text): return int(text) if text.isdigit() else text
@@ -432,45 +474,3 @@ def three_in_line(imgs, labels):
 
     plt.show()
 
-
-def two_in_line(imgs, labels):
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(7, 3),
-                                   sharex=True, sharey=True)
-    ax1.imshow(imgs[0])
-    ax1.axis('off')
-    ax1.set_title(labels[0], fontsize=16)
-
-    ax2.imshow(imgs[1])
-    ax2.axis('off')
-    ax2.set_title(labels[1], fontsize=16)
-
-    plt.show()
-
-
-if __name__ == "__main__":
-    # ====================== parameter initialization ======================= #
-
-    # Land-cover,R-value,G-value,B-value
-    vaihingen_refs = np.array([
-        ["Impervious_surfaces", 255, 255, 255],
-        ["Building", 0, 0, 255],
-        ["Low vegetation", 0, 255, 255],
-        ["Tree", 0, 255, 0],
-        ["Car", 255, 255, 0],
-        ["Background", 255, 0, 0],
-    ])
-    # Sample image from Vaihingen-slc Dataset
-    sample = 'img_0.png'
-    land_img = imread(os.path.join(
-        "../dataset/Vaihingen-slc/land", sample))
-    segmap_img = imread(os.path.join(
-        "../dataset/Vaihingen-slc/segmap", sample))
-
-    two_in_line([land_img, segmap_img],
-                ['Land', 'Segmap'])
-
-    label = img_to_label(segmap_img, vaihingen_refs)
-    img = label_to_img(label, vaihingen_refs)
-
-    two_in_line([segmap_img, img],
-                ['Original', 'Double Convert'])

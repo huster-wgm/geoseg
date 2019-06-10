@@ -1,18 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
   @Email:  guangmingwu2010@gmail.com
   @Copyright: go-hiroaki
   @License: MIT
 """
-import sys
-sys.path.append('./models')
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from blockunits import *
-from torch.autograd import Variable
+from .blocks import *
 
 
 class FPN(nn.Module):
@@ -90,15 +87,15 @@ class FPN(nn.Module):
 
         ux4 = self.upblock4(cx, dx41)
         out_4 = self.sideconv4(ux4)
-        up4 = F.upsample(out_4, scale_factor=8, mode='bilinear')
+        up4 = F.interpolate(out_4, scale_factor=8, mode='bilinear')
 
         ux3 = self.upblock3(ux4, dx31)
         out_3 = self.sideconv3(ux3)
-        up3 = F.upsample(out_3, scale_factor=4, mode='bilinear')
+        up3 = F.interpolate(out_3, scale_factor=4, mode='bilinear')
 
         ux2 = self.upblock2(ux3, dx21)
         out_2 = self.sideconv2(ux2)
-        up2 = F.upsample(out_2, scale_factor=2, mode='bilinear')
+        up2 = F.interpolate(out_2, scale_factor=2, mode='bilinear')
 
         ux1 = self.upblock1(ux2, dx11)
         out_1 = self.sideconv1(ux1)
@@ -181,15 +178,15 @@ class FPNvgg16(nn.Module):
 
         ux4 = self.upblock4(cx, dx41)
         out_4 = self.sideconv4(ux4)
-        up4 = F.upsample(out_4, scale_factor=8, mode='bilinear')
+        up4 = F.interpolate(out_4, scale_factor=8, mode='bilinear')
 
         ux3 = self.upblock3(ux4, dx31)
         out_3 = self.sideconv3(ux3)
-        up3 = F.upsample(out_3, scale_factor=4, mode='bilinear')
+        up3 = F.interpolate(out_3, scale_factor=4, mode='bilinear')
 
         ux2 = self.upblock2(ux3, dx21)
         out_2 = self.sideconv2(ux2)
-        up2 = F.upsample(out_2, scale_factor=2, mode='bilinear')
+        up2 = F.interpolate(out_2, scale_factor=2, mode='bilinear')
 
         ux1 = self.upblock1(ux2, dx11)
         out_1 = self.sideconv1(ux1)
@@ -203,15 +200,19 @@ if __name__ == "__main__":
     nb_channel = 3
     nb_class = 1
     base_kernel = 24
-    x = Variable(torch.FloatTensor(
-        np.random.random((1, nb_channel, 224, 224))), volatile=True)
+    x = torch.FloatTensor(
+        np.random.random((1, nb_channel, 224, 224)))
 
     generator = FPN(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
+    total_params = sum(p.numel() for p in generator.parameters())
     print("FPN->:")
-    print(" Network output ", gen_y.shape)
+    print(" Network output: ", gen_y.shape)
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
 
     generator = FPNvgg16(nb_channel, nb_class, base_kernel)
     gen_y = generator(x)
+    total_params = sum(p.numel() for p in generator.parameters())
     print("FPNvgg16->:")
-    print(" Network output ", gen_y.shape)
+    print(" Network output: ", gen_y.shape)
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))

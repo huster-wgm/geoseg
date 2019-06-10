@@ -1,18 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
   @Email:  guangmingwu2010@gmail.com
   @Copyright: go-hiroaki
   @License: MIT
 """
-import sys
-sys.path.append('./models')
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from blockunits import *
-from torch.autograd import Variable
+from .blocks import *
 
 
 class UNet(nn.Module):
@@ -21,7 +18,7 @@ class UNet(nn.Module):
                  nb_class=1,
                  base_kernel=64,):
         super(UNet, self).__init__()
-        kernels = [base_kernel * i for i in [1, 2, 4, 8, 16]]
+        kernels = [x * base_kernel for x in [1, 2, 4, 8, 16]]
         # down&pooling
         self.downblock1 = UNetDownx2(
             nb_channel, kernels[0])
@@ -157,15 +154,19 @@ if __name__ == "__main__":
     nb_channel = 3
     nb_class = 1
     base_kernel = 24
-    x = Variable(torch.FloatTensor(
-        np.random.random((1, nb_channel, 224, 224))), volatile=True)
+    x = torch.FloatTensor(
+        np.random.random((1, nb_channel, 224, 224)))
 
     generator = UNet(nb_channel, nb_class, base_kernel)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("UNet->:")
-    print(" Network output ", gen_y.shape)
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
+    print(" Network output: ", gen_y.shape)
 
     generator = UNetvgg16(nb_channel, nb_class, base_kernel)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("UNetvgg16->:")
-    print(" Network output ", gen_y.shape)
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
+    print(" Network output: ", gen_y.shape)

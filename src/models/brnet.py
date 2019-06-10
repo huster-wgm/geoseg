@@ -1,18 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
   @Email:  guangmingwu2010@gmail.com
   @Copyright: go-hiroaki
   @License: MIT
 """
-import sys
-sys.path.append('./models')
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from blockunits import *
-from torch.autograd import Variable
+from .blocks import *
 
 
 class ConvUnit(nn.Module):
@@ -347,35 +344,44 @@ if __name__ == "__main__":
     nb_channel = 3
     nb_class = 1
     base_kernel = 24
-    x = Variable(torch.FloatTensor(
-        np.random.random((1, nb_channel, 224, 224))), volatile=True)
+    x = torch.FloatTensor(
+        np.random.random((1, nb_channel, 224, 224)))
 
     generator = BRNetv0(nb_channel=3, nb_class=1)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("BRNetv0->:")
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
     print(" Network output 1", gen_y[0].shape)
     print(" Network output 2", gen_y[1].shape)
 
     generator = BRNetv1(nb_channel=3, nb_class=1)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("BRNetv1->:")
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
     print(" Network output 1", gen_y[0].shape)
     print(" Network output 2", gen_y[1].shape)
 
     generator = BRNetv2(nb_channel=3, nb_class=1)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("BRNetv2->:")
     print(" Network output 1", gen_y[0].shape)
     print(" Network output 2", gen_y[1].shape)
 
     generator = BRNetv3(nb_channel=3, nb_class=1)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("BRNetv3->:")
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
     print(" Network output 1", gen_y[0].shape)
     print(" Network output 2", gen_y[1].shape)
 
     generator = BRNetv4(nb_channel=3, nb_class=1)
+    total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("BRNetv4->:")
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
     print(" Network output 1", gen_y[0].shape)
     print(" Network output 2", gen_y[1].shape)
