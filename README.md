@@ -11,7 +11,7 @@
 
 ### Requirements
 
-- Pytorch == 0.3.0
+- Pytorch == 0.4.1
 - Python 3
 
 ### Organization
@@ -95,7 +95,7 @@ Details about the dataset can be found at <a href='#citation'>Citation</a>.
 ![FCN8s segmentation maps](./result/single/FCN8s_canny_segmap_edge_1.png)
 
 ### TODO
-- Upgrade to pytorch 0.4.0
+- Update training & testing data
 - Add support for more dataset
 
 ### Citation
