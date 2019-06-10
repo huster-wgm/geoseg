@@ -15,7 +15,6 @@
 - Python 3
 
 ### Organization
-- Subdirectories
 ```
 Geoseg
   ├── data/
