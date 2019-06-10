@@ -18,39 +18,32 @@
 - Subdirectories
 ```
 Geoseg
+  ├── data/
+  │   └── original image tiles
   ├── dataset/
-  │   └── train, validate and test dataset
+  │   └── image&mask slices from data
   ├── checkpoint/
   │   └── pre-trained models
   ├── logs/
-  │   ├── learning curve, statistic, etc.
-  ├── models/
-  │   ├── fcn, fpn, u-net, segnet, etc.
+  │   ├── curve
+  │   └── raw
+  │   speed.csv
   ├── result/
   │   └── quantitative & qualitative result
-  ├── utils/
-  │   ├── datasets.py
-  │   ├── metrics.py
-  │   ├── preprocess.py
-  │   ├── runner.py
-  │   └── vision.py
+  ├── src/
+    ├── __init__.py
+    ├── models
+        └── network archs. FCNs, UNet, etc.
+    ├── estrain.py
+    ├── losses.py
+    ├── metrics.py
+    ├── runner.py
+    ├── test.py
+    ├── train.py
+    └── vision.py
+  
 ```
-- Files for training specific models
-```
-  ├── FCNs.py
-  ├── FPN.py
-  ├── UNet.py
-  ├── MC-FCN.py
-  ├── BR-Net.py
-  ├── ResUNet.py
-...
-```
-- Files for evaluation and visualization
-```
-├── visSingle.py
-├── visSingleComparison.py
-...
-```
+
 ### Usage
 
 - Download repo.
