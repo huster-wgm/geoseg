@@ -93,9 +93,11 @@ class CFMatrix(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
+            channels += 1
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
+
         performs = torch.zeros(channels, 4)
         labels = torch.unique(y_true).flip(0)
         labels = labels[labels <= channels]
@@ -132,6 +134,7 @@ class OAAcc(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
+            channels += 1
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
@@ -161,9 +164,11 @@ class Precision(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
+            channels += 1
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
+    
         performs = torch.zeros(channels, 1)
         labels = torch.unique(y_true).flip(0)
         labels = labels[labels <= channels]
@@ -198,9 +203,11 @@ class Recall(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
+            channels += 1
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
+
         performs = torch.zeros(channels, 1)
         labels = torch.unique(y_true).flip(0)
         labels = labels[labels <= channels]
@@ -236,9 +243,11 @@ class F1Score(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
+            channels += 1
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
+
         performs = torch.zeros(channels, 1)
         labels = torch.unique(y_true).flip(0)
         labels = labels[labels <= channels]
@@ -278,9 +287,11 @@ class Kappa(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
+            channels += 1
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
+
         performs = torch.zeros(channels, 1)
         labels = torch.unique(y_true).flip(0)
         labels = labels[labels <= channels]
@@ -321,9 +332,11 @@ class Jaccard(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
+            channels += 1
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
+
         performs = torch.zeros(channels, 1)
         labels = torch.unique(y_true).flip(0)
         labels = labels[labels <= channels]
