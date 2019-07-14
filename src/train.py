@@ -11,7 +11,7 @@ import torch
 import argparse
 import numpy as np
 import torch.optim as optim
-
+from datasets import load_dataset
 
 torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.deterministic = True
@@ -25,7 +25,7 @@ def load_model(args):
     from models.resunet import ResUNet
     from models.fpn import FPN
     from models.mcfcn import MCFCN
-    from models.brnet import BRNetv0, BRNetv1, BRNetv2, BRNetv3, BRNetv4
+    from models.brnet import BRNet, BRNetv1, BRNetv2, BRNetv3, BRNetv4
     
     net = eval(args.net)(args.src_ch, args.tar_ch, args.base_kernel)
     if args.cuda:
@@ -33,20 +33,6 @@ def load_model(args):
     net.optimizer = optim.Adam(
         net.parameters(), lr=args.lr, betas=optim_betas)
     return net
-
-
-def load_dataset(args):
-    from datasets import nzLS, nzLS8xsub, nzLSE
-    if "MCFCN" in args.net:
-        train_set = nzLS8xsub(args.root, "train")
-        val_set = nzLS(args.root, "val")
-    elif "BRNet" in args.net:
-        train_set = nzLSE(args.root, "train")
-        val_set = nzLS(args.root, "val")
-    else:
-        train_set = nzLS(args.root, "train")
-        val_set = nzLS(args.root, "val")
-    return train_set, val_set
 
 
 def set_trainer(args, method):
@@ -65,14 +51,20 @@ def main(args):
         raise ValueError("GPUs are not available, please run at cpu mode")
 
     # initialize datasets
-    train_set, val_set = load_dataset(args)
+    if "MCFCN" in args.net:
+        mode = 'IMS'
+    elif "BRNet" in args.net:
+        mode = 'IME'
+    else:
+        mode = 'IM'
+    train_set, val_set = load_dataset(args.root, mode)
     print("Dataset : {} ==> Train : {} ; Val : {}".format(args.root, len(train_set), len(val_set)))
 
     # initialize network
     args.src_ch = train_set.src_ch
     args.tar_ch = train_set.tar_ch
     net = load_model(args)
-    print("Model : {} ==> Src_ch : {} ; Tar_ch : {} ; Base_Kernel : {}".format(args.net, args.src_ch, args.tar_ch, args.base_kernel))
+    print("Model : {} ==> (Src_ch : {} ; Tar_ch : {} ; Base_Kernel : {})".format(args.net, args.src_ch, args.tar_ch, args.base_kernel))
 
     # initialize runner
     method = "{}-{}*{}*{}-{}".format(args.net, args.src_ch, args.tar_ch, args.base_kernel, args.root) 
@@ -85,7 +77,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='ArgumentParser')
-    parser.add_argument('-root', type=str, default='NewZealand', 
+    parser.add_argument('-root', type=str, default='NZ32km2', 
                         help='root dir of dataset for training models')
     parser.add_argument('-net', type=str, default='FCN8s',
                         help='network type for training')
@@ -100,7 +92,7 @@ if __name__ == "__main__":
     parser.add_argument('-batch_size', type=int, default=32,
                         help='batch_size for training ')
     parser.add_argument('-lr', type=float, default=1e-4,
-                        help='learning rate for discriminator')
+                        help='learning rate for optimization')
     parser.add_argument('-cuda', type=lambda x: (str(x).lower() == 'true'), default=True,
                         help='using cuda for optimization')
     args = parser.parse_args()

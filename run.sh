@@ -1,18 +1,18 @@
-echo "Running Scripts for model training ..."
-# # FCNs with NewZealand
-# python src/train.py -root NewZealand -net FCN32s -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-# python src/train.py -root NewZealand -net FCN16s -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-# python src/train.py -root NewZealand -net FCN8s -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-# U-Net with NewZealand
-python src/train.py -root NewZealand -net UNet -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-# SegNet with NewZealand
-python src/train.py -root NewZealand -net SegNet -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-# ResUNet with NewZealand
-python src/train.py -root NewZealand -net ResUNet -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-# MCFCN with NewZealand
-python src/train.py -root NewZealand -net MCFCN -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-# BRNetv0 with NewZealand
-python src/train.py -root NewZealand -net BRNetv0 -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-# FPN with NewZealand
-python src/train.py -root NewZealand -net FPN -trigger iter -interval 50 -terminal 5000 -batch_size 24 &&
-echo "end"
+#!/bin/bash
+echo "Training basic models";
+for root in NZ32km2 Vaihingen PotsdamRGB PotsdamIRRG; do
+    for net in FCN32s FCN16s FCN8s UNet SegNet ResUNet MCFCN BRNet FPN; do
+        python src/train.py -root $root -net $net -trigger iter -interval 50 -terminal 5000 -batch_size 24;
+    done
+done
+
+echo "Training ensemble models";
+NetArr = ("FCN8s UNet" "FCN8s FPN" "UNet FPN" "FCN8s UNet FPN");
+for root in NZ32km2 Vaihingen PotsdamRGB PotsdamIRRG; do
+    for net in ${NetArr[*]}; do
+        python src/estrain.py -root $root -net $net -trigger iter -interval 50 -terminal 5000 -batch_size 24;
+    done
+done
+
+
+echo "End.."

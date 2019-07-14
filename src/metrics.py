@@ -73,6 +73,19 @@ def _get_fn(y_pred, y_true):
     return torch.sum(y_true * (1 - y_pred)).float()
 
 
+def _get_weights(y_true, nb_ch):
+    """
+    args:
+        y_true : 3-d ndarray in [batch_size, img_rows, img_cols]
+        nb_ch : int 
+    return [float] weights
+    """
+    batch_size, img_rows, img_cols = y_true.shape
+    pixels = batch_size * img_rows * img_cols
+    weights = [torch.sum(y_true==i)/pixels for i in range(nb_ch)]
+    return weights
+
+
 class CFMatrix(object):
     def __init__(self, des=None):
         self.des = des

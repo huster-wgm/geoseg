@@ -11,7 +11,7 @@ import torch
 import argparse
 import numpy as np
 import torch.optim as optim
-
+from datasets import load_dataset
 
 torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.deterministic = True
@@ -81,13 +81,6 @@ def load_model(args):
     return net
 
 
-def load_dataset(args):
-    from datasets import LS
-    train_set = LS(args.dataset, "train")
-    val_set = LS(args.dataset, "val")
-    return train_set, val_set
-
-
 def set_trainer(args, method):
     from esrunner import stackTrainer
     if args.ensemble == "stacking":
@@ -103,14 +96,14 @@ def main(args):
         raise ValueError("GPUs are not available, please run at cpu mode")
 
     # initialize datasets
-    train_set, val_set = load_dataset(args)
+    train_set, val_set = load_dataset(args.root, 'IM')
     print("Dataset : {} ==> Train : {} ; Val : {} .".format(args.dataset, len(train_set), len(val_set)))
 
     # initialize network
     args.src_ch = train_set.src_ch
     args.tar_ch = train_set.tar_ch
     net = load_model(args)
-    print("Model : {} ==> Src_ch : {} ; Tar_ch : {} .".format(net.symbol, args.src_ch, args.tar_ch))
+    print("Model : {} ==> (Src_ch : {} ; Tar_ch : {} ; Base_Kernel : {})".format(net.symbol, args.src_ch, args.tar_ch, args.base_kernel))
 
     # initialize runner
     method = "{}-{}".format(net.symbol, args.dataset) 

@@ -33,6 +33,19 @@ class BCELoss(nn.Module):
     def forward(self, output, target):
         loss = self.criterion(output, target)
         return loss
+    
+class MCELoss(nn.Module):
+    def __init__(self):
+        super(MCELoss, self).__init__()
+        self.criterion = nn.CrossEntropyLoss(size_average=True)
+
+    def __repr__(self):
+        return "MCE"
+
+    def forward(self, output, target):
+        target = torch.argmax(target, dim=1).long()
+        loss = self.criterion(output, target)
+        return loss
 
 class MSELoss(nn.Module):
     def __init__(self):

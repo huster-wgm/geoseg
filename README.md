@@ -26,13 +26,14 @@ Geoseg
   ├── logs/
   │   ├── curve
   │   └── raw
+  │   └── snapshot
   │   speed.csv
   ├── result/
   │   └── quantitative & qualitative result
   ├── src/
     ├── __init__.py
     ├── models
-        └── network archs. FCNs, UNet, etc.
+    │   └── network archs. FCNs, UNet, etc.
     ├── estrain.py
     ├── losses.py
     ├── metrics.py

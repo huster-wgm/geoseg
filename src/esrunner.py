@@ -26,7 +26,7 @@ if not os.path.exists(Logs_DIR):
     os.mkdir(Logs_DIR)
     os.mkdir(os.path.join(Logs_DIR, 'raw'))
     os.mkdir(os.path.join(Logs_DIR, 'curve'))
-    # os.mkdir(os.path.join(Logs_DIR, 'snapshot'))
+    os.mkdir(os.path.join(Logs_DIR, 'snapshot'))
 
 if not os.path.exists(Checkpoint_DIR):
     os.mkdir(Checkpoint_DIR)
@@ -57,12 +57,12 @@ class Base(object):
         self.logs = []
         self.criterion = losses.BCELoss()
         self.evaluator = metrics.OAAcc()
-        # self.snapshot = os.path.join(Logs_DIR, "snapshot", self.method)
-        # if not os.path.exists(self.snapshot):
-        #     os.makedirs(self.snapshot)
-        # else:
-        #     shutil.rmtree(self.snapshot)
-        #     os.makedirs(self.snapshot)
+        self.snapshot = os.path.join(Logs_DIR, "snapshot", self.method)
+        if not os.path.exists(self.snapshot):
+            os.makedirs(self.snapshot)
+        else:
+            shutil.rmtree(self.snapshot)
+            os.makedirs(self.snapshot)
         
         self.header = ["epoch", "iter"]
         for stage in ['trn', 'val']:
@@ -118,11 +118,35 @@ class Base(object):
         # sns.despine()
         plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
         plt.savefig(os.path.join(Logs_DIR, 'curve', '{}.png'.format(self.repr)),
-                    format='png', bbox_inches='tight', dpi=300)
+                    format='png', bbox_inches='tight', dpi=144)
         # plt.savefig(os.path.join(Logs_DIR, 'curve', '{}.eps'.format(self.repr)),
         #             format='eps', bbox_inches='tight', dpi=300)
         return 0
 
+    def save_snapshot(self, src, tar, gen, dataset):
+        """
+          Args:
+            src: (tensor) tensor of src
+            tar: (tensor) tensor of tar
+            gen: (tensor) tensor of gen
+        """
+        from skimage.io import imsave
+        # transfer to cpu
+        if self.args.cuda:
+            src = src.cpu()
+            tar = tar.cpu()
+            gen = gen.cpu()
+        src = src.numpy()[0].transpose((1, 2, 0))
+        tar = tar.numpy()[0].transpose((1, 2, 0))
+        gen = gen.numpy()[0].transpose((1, 2, 0))
+        src_img = dataset._src2img(src)
+        tar_img = dataset._tar2img(tar)
+        gen_img = dataset._tar2img(gen)
+        vis_img = dataset._whitespace(np.concatenate(
+            [src_img, tar_img, gen_img], axis=1))
+        # save image
+        imsave(os.path.join(self.snapshot, '{}_iter-{:05d}.png'.format(self.method, self.iter)), vis_img)
+    
 
 class stackTrainer(Base):
     def training(self, net, datasets):
@@ -156,19 +180,19 @@ class stackTrainer(Base):
             # setup data loader
             data_loader = DataLoader(datasets[0], args.batch_size, num_workers=4,
                                      shuffle=True, pin_memory=True,)
-            for idx, (x, y) in enumerate(data_loader):
+            for idx, sample in enumerate(data_loader):
                 self.iter += 1
                 if self.iter > args.iters:
                     self.iter -= 1
                     break
                 # get tensors from sample
+                x = sample['src']
+                y = sample['tar']
                 if args.cuda:
                     x = x.cuda()
                     y = y.cuda()
                 # forwarding
-                gen_ys = []
-                for model in net.models:
-                    gen_ys.append(model(x))
+                gen_ys = [model(x) for model in net.models]
                 loss_align = AL.ALMSE(gen_ys)
                 gen_y = sum(gen_ys) / len(gen_ys)
                 loss_seg = self.criterion(gen_y, y)
@@ -178,8 +202,8 @@ class stackTrainer(Base):
                 loss.backward()
                 net.optimizer.step()
                 # update taining condition
-                trn_loss.append(loss.item())
-                trn_acc.append(self.evaluator(gen_y.data, y.data)[0].item())
+                trn_loss.append(loss.detach().item())
+                trn_acc.append(self.evaluator(gen_y.detach(), y.detach())[0].item())
                 # validating
                 if self.iter % args.iter_interval == 0:
                     trn_fps = (args.iter_interval * args.batch_size) / (time.time() - start)
@@ -226,23 +250,24 @@ class stackTrainer(Base):
         start = time.time()
         for model in net.models:
             model.eval()
-        for idx, (x, y) in enumerate(data_loader):
-            # get tensors from sample
-            if args.cuda:
-                x = x.cuda()
-                y = y.cuda()
-            # forwading
-            gen_ys = []
-            for model in net.models:
-                gen_ys.append(model(x))
-            gen_y = sum(gen_ys) / len(gen_ys)
+        with torch.set_grad_enabled(False):
+            for idx, sample in enumerate(data_loader):
+                # get tensors from sample
+                x = sample['src']
+                y = sample['tar']
+                if args.cuda:
+                    x = x.cuda()
+                    y = y.cuda()
+                # forwading
+                gen_ys = [model(x) for model in net.models]
+                gen_y = sum(gen_ys) / len(gen_ys)
 
-            val_loss.append(self.criterion(gen_y, y).item())
-            val_acc.append(self.evaluator(gen_y.data, y.data)[0].item())
+                val_loss.append(self.criterion(gen_y.detach, y.detach()).item())
+                val_acc.append(self.evaluator(gen_y.detach(), y.detach())[0].item())
 
         val_fps = (len(val_loss) * args.batch_size ) / (time.time() - start)
         self.val_log = [round(sum(val_loss) / len(val_loss), 3), 
                         round(sum(val_acc) / len(val_acc), 3),
                         round(val_fps, 3)]
-
+        self.save_snapshot(x.detach(), y.detach(), gen_y.detach(), dataset)
 

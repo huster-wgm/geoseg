@@ -27,65 +27,62 @@ def cls_to_label(img_cls, nb_class):
         nb_class: total number of class
     return img_label
     """
-    rows, cols = img_cls.shape[: 2]
+    assert len(img_cls.shape) == 2, "img_cls should be 2D, ({}) given.".format(img_cls.shape)
+    rows, cols = img_cls.shape
     img_label = np.zeros((rows, cols, nb_class), "float32")
     for cls in range(nb_class):
         img_label[img_cls == cls, cls] = 1.0
     return img_label
 
 
-def img_to_cls(img, refs):
+def img_to_cls(img, cmap):
     """converting RGB grand turth to labels class
     args:
         img: (3d array) RGB image
-        refs: (2d array ) reference  ['label', 'R-value', 'G-value', 'B-value']
+        cmap: (2D darray ) values in  ['R','G','B']
     return img_cls
     """
     rows, cols = img.shape[: 2]
-    nb_class = refs.shape[0]
+    nb_class = cmap.shape[0]
     img_cls = np.zeros((rows, cols), "uint8")
     for cls in range(nb_class):
-        img_tmp = np.zeros((rows, cols, 3), "uint8")
-        img_tmp[:, :, 0] = refs[cls, 1]
-        img_tmp[:, :, 1] = refs[cls, 2]
-        img_tmp[:, :, 2] = refs[cls, 3]
+        img_tmp = np.ones((rows, cols, 3), "uint8") * cls
+        img_tmp = cmap[img_tmp]
         img_consit = np.sum(img_tmp == img, axis=-1)
         img_cls[img_consit == 3] = cls
     return img_cls
 
 
-def img_by_layer(img, refs):
+def img_by_layer(img, cmap):
     """converting RGB grand turth to labels class
     args:
         img: (3d array) RGB image
-        refs: (2d array ) reference  ['label', 'R-value', 'G-value', 'B-value']
+        cmap: (2d array ) reference  ['label', 'R-value', 'G-value', 'B-value']
     return imgs
     """
     rows, cols = img.shape[: 2]
-    nb_class = refs.shape[0]
+    nb_class = cmap.shape[0]
     img_layers = []
     for cls in range(nb_class):
         layer = np.zeros((rows, cols, 4), "uint8")
-        img_tmp = np.zeros((rows, cols, 3), "uint8")
-        img_tmp[:, :, 0] = refs[cls, 1]
-        img_tmp[:, :, 1] = refs[cls, 2]
-        img_tmp[:, :, 2] = refs[cls, 3]
+        img_tmp = np.ones((rows, cols, 3), "uint8") * cls
+        img_tmp = cmap[img_tmp]
         img_consit = np.sum(img_tmp == img, axis=-1)
-        layer[img_consit == 3, :3] = refs[cls, 1:]
+        layer[img_consit == 3, :3] = cmap[cls, 1:]
         layer[img_consit == 3, -1] = 255
         img_layers.append(layer)
     return img_layers
 
 
-def img_to_label(img, refs):
+def img_to_label(img, cmap):
     """converting RGB grand turth to labels
     args:
         img: (3d array) RGB image
-        refs: (2d array ) reference  ['label', 'R-value', 'G-value', 'B-value']
+        cmap: (2d array ) color map [n] x [r,g,b]
     return img_label
     """
-    img_cls = img_to_cls(img, refs)
-    img_label = cls_to_label(img_cls, refs.shape[0])
+    img_cls = img_to_cls(img, cmap)
+    img_label = cls_to_label(img_cls, cmap.shape[0])
     return img_label
 
 
@@ -95,35 +92,38 @@ def label_to_cls(img_label):
         img_label: (3d array) img label
     return img_cls
     """
-    img_cls = np.argmax(img_label, axis=-1)
-    return img_cls
+    ch = img_label.shape[2]
+    if ch > 1:
+        img_cls = np.argmax(img_label, axis=2)
+    else:
+        img_cls = img_label[:, :, 0]
+        img_cls[img_cls < 0.5] = 0
+        img_cls[img_cls >= 0.5] = 1
+    return img_cls.astype('uint8')
 
 
-def cls_to_img(img_cls, refs):
+def cls_to_img(img_cls, cmap):
     """converting img class to RGB img
     args:
         img_cls: (2d array) img class
-        refs: (ndarray ) reference  ['label', 'R-value', 'G-value', 'B-value']
+        cmap: (2D darray ) values in  ['R','G','B']
     return img_cls
     """
-    rows, cols = img_cls.shape[: 2]
-    nb_class = refs.shape[0]
-    img = np.zeros((rows, cols, 3), np.uint8)
-    for cls in range(nb_class):
-        cls_rgb = refs[cls, 1:]
-        img[img_cls == cls] = cls_rgb
+    assert len(img_cls.shape) == 2, "img_cls should be 2D"
+    img = cmap[img_cls]
     return img
 
 
-def label_to_img(img_label, refs):
+def label_to_img(img_label, cmap):
     """converting img labels to RGB img
     args:
-        img_label: (3d array) img label
-        refs: (ndarray ) reference  ['label', 'R-value', 'G-value', 'B-value']
+        img_label: (3d array) img label [row, col, nb_class]
+        cmap: (2D darray ) values in  ['R','G','B']
     return img
     """
+    assert len(img_label.shape) == 3, "img_label should be 3D"
     img_cls = label_to_cls(img_label)
-    img = cls_to_img(img_cls, refs)
+    img = cls_to_img(img_cls, cmap)
     return img
 
 
@@ -138,7 +138,6 @@ def img_to_tensor(img):
     if len(img.shape) == 2:
         img = np.expand_dims(img, axis=-1)
     img = img.transpose((2, 1, 0))
-    img = np.expand_dims(img, axis=0)
     return torch.FloatTensor(img)
 
 
@@ -209,46 +208,86 @@ def slices_to_img(slices, shapes):
     return img
 
 
-def slices_to_tensor(img_slices, refs=None):
+def tensors_to_tensor(tensors, shapes):
     """
-    Convert img_slices to tensor
+    Restore N-tensors into one
+        args:
+            tensors: tensors [nb, ch, row, col]
+            shapes: [nb_rows, nb_cols] of original position
+        return img
+    """
+    nb, ch, row, col = tensors.shape
+    assert nb == (shapes[0] * shapes[1]), 'Number of tensor should be equals.'
+    # set img placeholder
+    tmp = torch.zeros(size=(1, ch, row*shapes[0], col*shapes[1]),dtype=torch.float32)
+    # merge
+    for i, j in itertools.product(range(shapes[0]), range(shapes[1])):
+        tmp[0, 
+            :,
+            i * row:(i+1) * row,
+            j * col:(j+1) * col] = tensors[i * shapes[1] + j]
+    return tmp
+
+
+def xslices_to_tensor(slices):
+    """
+    Convert x_slices to tensor
     args:
-      img_slices: list of (ndarray) unit8
-      refs: None or array of label references
+      slices: list of (ndarray) unit8
     return tensors
     """
-    img_arrays = np.array(img_slices)
-    if len(img_arrays.shape) == 3:
-        img_arrays = np.expand_dims(img_arrays, axis=-1)
-    if refs is not None:
-        labels = []
-        for idx in range(img_arrays.shape[0]):
-            labels.append(img_to_label(img_arrays[idx], refs))
-        img_arrays = np.array(labels)
+    arr = np.array(slices)
+    if len(arr.shape) == 3:
+        arr = np.expand_dims(arr, axis=-1)
+    arr = (arr / 255).transpose((0, 3, 1, 2))
+    return torch.from_numpy(arr).float()
+
+
+def yslices_to_tensor(slices, cmap):
+    """
+    Convert y_slices to tensor
+    args:
+      slices: list of (2D array) unit8
+      cmap: 2D color map
+    return tensors
+    """
+    if cmap.shape[0] > 2:
+        # multi-class
+        arr = [img_to_label(slc, cmap) for slc in slices]
+        arr = np.array(arr)
     else:
-        img_arrays = (img_arrays / 255).astype('float32')
-    img_arrays = img_arrays.transpose((0, 3, 1, 2))
-    return torch.FloatTensor(img_arrays)
+        # binary
+        arr = np.expand_dims(np.array(slices), axis=-1)
+    del slices
+    assert len(arr.shape) == 4, "Dimension should be 4"
+    arr = arr.transpose((0, 3, 1, 2))
+    return torch.from_numpy(arr).float()
 
 
-def tensor_to_slices(tensors, refs=None):
+def xtensor_to_slices(tensors):
     """
     Convert tensors to img_slices
     args:
       tensors: (4d FloatTensor) [nb, channel, width, height]
-      refs: None or array of label references
+      cmap: None or array of label references
     return img_slices
     """
-    tensors = tensors.numpy()
-    tensors = tensors.transpose((0, 2, 3, 1))
-    if refs is not None:
-        img_arrays = []
-        for idx in range(tensors.shape[0]):
-            img_arrays.append(label_to_img(tensors[idx], refs))
-        img_arrays = np.array(img_arrays)
-    else:
-        img_arrays = (tensors * 255).astype("uint8")
-    return img_arrays
+    tensors = tensors.numpy().transpose((0, 2, 3, 1))
+    return (tensors * 255).astype("uint8")
+
+
+def ytensor_to_slices(tensors, cmap):
+    """
+    Convert tensors to img_slices
+    args:
+      tensors: (4d FloatTensor) [nb, channel, width, height]
+      cmap: 2D array, color map
+    return img_slices
+    """
+    tensors = tensors.numpy().transpose((0, 2, 3, 1))
+    arr = [label_to_img(tensors[idx], cmap) for idx in range(tensors.shape[0])]
+    arr = np.array(arr)
+    return arr
 
 
 def natural_sort(l):
@@ -329,28 +368,65 @@ def pair_to_rgb(gen_img, tar_img, background='black', use_dilation=False, disk_v
     return rgb_img
 
 
-def shift_edge(img, dtype="uint8"):
+def _get_diff(arr, k):
     """
     args:
-        img : 2-d or 3-d ndarray in [img_rows, img_cols, *channels]
-        dtype : unit8 or float32
+        arr : 2D array in [img_rows, img_cols], value in i-class
+        k : int [0,1,2,3] direction
     return:
-        edge: outline of image
+        diff by k
     """
-    if dtype == "uint8":
-        img = (img / 255).astype("float32")
-    img_shift_l, img_shift_d = np.copy(img), np.copy(img)
-    img_shift_l[:, 1:] = img[:, :-1]
-    img_shift_d[1:, :] = img[:-1, :]
-    edge_l = img - img_shift_l
-    edge_l[edge_l != 0] = 1
-    edge_d = img - img_shift_d
-    edge_d[edge_d != 0] = 1
-    edge = edge_l + edge_d
-    edge[edge != 0] = 1
-    if dtype == "uint8":
-        edge = (edge * 255).astype("uint8")
-    return edge
+    row, col = arr.shape
+    shift = np.copy(arr)
+    if k == 0:
+        # left
+        shift[:, :-1] = arr[:, 1:]
+    elif k == 1:
+        # right
+        shift[:, 1:] = arr[:, :-1]
+    elif k == 2:
+        # up
+        shift[:-1, :] = arr[1:, :]
+    elif k == 3:
+        # down
+        shift[1:, :] = arr[:-1, :]
+    diff = arr - shift
+    diff[diff != 0] = 1
+    return diff
+
+
+def shift_edge(img, nb_class=1):
+    """
+    args:
+        img : 2D array in [img_rows, img_cols], value in i-class
+        dtype : unit8 or float32
+        nb_class : 1
+    return:
+        edges: outline of image
+    """
+    row, col = img.shape[:2]
+    img = img.astype("float32")
+    edges = np.zeros((row, col, nb_class), 'float32')
+    if nb_class == 1:
+        diff = [_get_diff(img, k) for k in [0,1,2,3]]
+        diff = sum(diff)
+        diff[diff !=0 ] = 1
+        edges[:,:,0] = diff
+    else:
+        is_odd = False
+        for cls in range(1, nb_class):
+            tmp = np.zeros((row, col), 'float32')
+            tmp[img == cls] = 1.0
+            if is_odd:
+                diff = [_get_diff(tmp, k) for k in [0,2]]
+                is_odd = False
+            else:
+                diff = [_get_diff(tmp, k) for k in [1,3]]
+                is_odd = True
+            diff = sum(diff)
+            diff[diff !=0 ] = 1
+            edges[:,:,cls] = diff
+    return edges
 
 
 def canny_edge(img, sigma=1):

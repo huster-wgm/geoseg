@@ -7,8 +7,10 @@
 """
 import os
 import time
+import shutil
 import metrics
 import losses
+import numpy as np
 import pandas as pd
 import warnings
 
@@ -26,7 +28,7 @@ if not os.path.exists(Logs_DIR):
     os.mkdir(Logs_DIR)
     os.mkdir(os.path.join(Logs_DIR, 'raw'))
     os.mkdir(os.path.join(Logs_DIR, 'curve'))
-    # os.mkdir(os.path.join(Logs_DIR, 'snapshot'))
+    os.mkdir(os.path.join(Logs_DIR, 'snapshot'))
 
 if not os.path.exists(Checkpoint_DIR):
     os.mkdir(Checkpoint_DIR)
@@ -44,14 +46,17 @@ class Base(object):
         self.epoch = 0
         self.iter = 0
         self.logs = []
-        self.criterion = losses.BCELoss()
+        if args.tar_ch > 1:
+            self.criterion = losses.MCELoss()
+        else:
+            self.criterion = losses.BCELoss()
         self.evaluator = metrics.OAAcc()
-        # self.snapshot = os.path.join(Logs_DIR, "snapshot", self.method)
-        # if not os.path.exists(self.snapshot):
-        #     os.makedirs(self.snapshot)
-        # else:
-        #     shutil.rmtree(self.snapshot)
-        #     os.makedirs(self.snapshot)
+        self.snapshot = os.path.join(Logs_DIR, "snapshot", self.method)
+        if not os.path.exists(self.snapshot):
+            os.makedirs(self.snapshot)
+        else:
+            shutil.rmtree(self.snapshot)
+            os.makedirs(self.snapshot)
         
         self.header = ["epoch", "iter"]
         for stage in ['trn', 'val']:
@@ -105,10 +110,31 @@ class Base(object):
         # sns.despine()
         plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
         plt.savefig(os.path.join(Logs_DIR, 'curve', '{}.png'.format(self.repr)),
-                    format='png', bbox_inches='tight', dpi=300)
-        # plt.savefig(os.path.join(Logs_DIR, 'curve', '{}.eps'.format(self.repr)),
-        #             format='eps', bbox_inches='tight', dpi=300)
-        return 0
+                    format='png', bbox_inches='tight', dpi=144)
+
+    def save_snapshot(self, src, tar, gen, dataset):
+        """
+          Args:
+            src: (tensor) tensor of src
+            tar: (tensor) tensor of tar
+            gen: (tensor) tensor of gen
+        """
+        from skimage.io import imsave
+        # transfer to cpu
+        if self.args.cuda:
+            src = src.cpu()
+            tar = tar.cpu()
+            gen = gen.cpu()
+        src = src.numpy()[0].transpose((1, 2, 0))
+        tar = tar.numpy()[0].transpose((1, 2, 0))
+        gen = gen.numpy()[0].transpose((1, 2, 0))
+        src_img = dataset._src2img(src)
+        tar_img = dataset._tar2img(tar)
+        gen_img = dataset._tar2img(gen)
+        vis_img = dataset._whitespace(np.concatenate(
+            [src_img, tar_img, gen_img], axis=1))
+        # save image
+        imsave(os.path.join(self.snapshot, '{}_iter-{:05d}.png'.format(self.method, self.iter)), vis_img)
 
 
 class Trainer(Base):
@@ -141,12 +167,14 @@ class Trainer(Base):
             # setup data loader
             data_loader = DataLoader(datasets[0], args.batch_size, num_workers=4,
                                      shuffle=True, pin_memory=True,)
-            for idx, (x, y) in enumerate(data_loader):
+            for idx, sample in enumerate(data_loader):
                 self.iter += 1
                 if self.iter > args.iters:
                     self.iter -= 1
                     break
                 # get tensors from sample
+                x = sample["src"]
+                y = sample["tar"]
                 if args.cuda:
                     x = x.cuda()
                     y = y.cuda()
@@ -158,8 +186,8 @@ class Trainer(Base):
                 loss.backward()
                 net.optimizer.step()
                 # update taining condition
-                trn_loss.append(loss.item())
-                trn_acc.append(self.evaluator(gen_y.data, y.data)[0].item())
+                trn_loss.append(loss.detach().item())
+                trn_acc.append(self.evaluator(gen_y.detach(), y.detach())[0].item())
                 # validating
                 if self.iter % args.iter_interval == 0:
                     trn_fps = (args.iter_interval * args.batch_size) / (time.time() - start)
@@ -202,28 +230,31 @@ class Trainer(Base):
         """
         args = self.args
         data_loader = DataLoader(dataset, args.batch_size, num_workers=4,
-                                 shuffle=False, pin_memory=True,)
+                                 shuffle=True, pin_memory=True,)
         val_loss, val_acc = [], []
         start = time.time()
         net.eval()
-        for idx, (x, y) in enumerate(data_loader):
-            # get tensors from sample
-            if args.cuda:
-                x = x.cuda()
-                y = y.cuda()
-           # forwading
-            gen_y = net(x)
-            if self.is_multi:
-                gen_y = gen_y[0]
+        with torch.set_grad_enabled(False):
+            for idx, sample in enumerate(data_loader):
+                # get tensors from sample
+                x = sample["src"]
+                y = sample["tar"]
+                if args.cuda:
+                    x = x.cuda()
+                    y = y.cuda()
+               # forwading
+                gen_y = net(x)
+                if self.is_multi:
+                    gen_y = gen_y[0]
 
-            val_loss.append(self.criterion(gen_y, y).item())
-            val_acc.append(self.evaluator(gen_y.data, y.data)[0].item())
+                val_loss.append(self.criterion(gen_y.detach(), y.detach()).item())
+                val_acc.append(self.evaluator(gen_y.detach(), y.detach())[0].item())
 
         val_fps = (len(val_loss) * args.batch_size) / (time.time() - start)
         self.val_log = [round(sum(val_loss) / len(val_loss), 3), 
                         round(sum(val_acc) / len(val_acc), 3),
                         round(val_fps, 3)]
-
+        self.save_snapshot(x.detach(), y.detach(), gen_y.detach(), dataset)
 
 class brTrainer(Trainer):
     def training(self, net, datasets):
@@ -255,12 +286,15 @@ class brTrainer(Trainer):
             # setup data loader
             data_loader = DataLoader(datasets[0], args.batch_size, num_workers=4,
                                      shuffle=True, pin_memory=True,)
-            for idx, (x, y, y_sub) in enumerate(data_loader):
+            for idx, sample in enumerate(data_loader):
                 self.iter += 1
                 if self.iter > args.iters:
                     self.iter -= 1
                     break
                 # get tensors from sample
+                x = sample["src"]
+                y = sample["tar"]
+                y_sub = sample["tar_sub"]
                 if args.cuda:
                     x = x.cuda()
                     y = y.cuda()
@@ -276,8 +310,8 @@ class brTrainer(Trainer):
                 loss.backward()
                 net.optimizer.step()
                 # update taining condition
-                trn_loss.append(loss.item())
-                trn_acc.append(self.evaluator(gen_y.data, y.data)[0].item())
+                trn_loss.append(loss.detach().item())
+                trn_acc.append(self.evaluator(gen_y.detach(), y.detach())[0].item())
                 # validating
                 if self.iter % args.iter_interval == 0:
                     trn_fps = (args.iter_interval * args.batch_size) / (time.time() - start)
@@ -342,12 +376,15 @@ class mcTrainer(Trainer):
             # setup data loader
             data_loader = DataLoader(datasets[0], args.batch_size, num_workers=4,
                                      shuffle=True, pin_memory=True,)
-            for idx, (x, y, y_sub) in enumerate(data_loader):
+            for idx, sample in enumerate(data_loader):
                 self.iter += 1
                 if self.iter > args.iters:
                     self.iter -= 1
                     break
                 # get tensors from sample
+                x = sample['src']
+                y = sample['tar']
+                y_sub = sample['tar_sub']
                 if args.cuda:
                     x = x.cuda()
                     y = y.cuda()
@@ -363,8 +400,8 @@ class mcTrainer(Trainer):
                 loss.backward()
                 net.optimizer.step()
                 # update taining condition
-                trn_loss.append(loss.item())
-                trn_acc.append(self.evaluator(gen_y.data, y.data)[0].item())
+                trn_loss.append(loss.detach().item())
+                trn_acc.append(self.evaluator(gen_y.detach(), y.detach())[0].item())
                 # validating
                 if self.iter % args.iter_interval == 0:
                     trn_fps = (args.iter_interval * args.batch_size) / (time.time() - start)
@@ -396,127 +433,5 @@ class mcTrainer(Trainer):
         print("Best {} Performance: \n".format(repr(self.evaluator)))
         print("\t Trn:", best_trn_perform)
         print("\t Val:", best_val_perform)
-
-
-
-class cganTrainer(Trainer):
-    def training(self, net, datasets):
-        """
-          input:
-            net: (object) generator/discriminator model & optimizer
-            datasets : (list)['train', 'val'] dataset object
-        """
-        args = self.args
-        net.generator.train()
-        net.discriminator.train()
-        steps = len(datasets[0]) // args.batch_size
-        if args.trigger == 'epoch':
-            args.epochs = args.terminal
-            args.iters = steps * args.terminal
-            args.iter_interval = steps * args.interval
-        else:
-            args.epochs = args.terminal // steps + 1
-            args.iters = args.terminal
-            args.iter_interval = args.interval
-
-        trn_loss, trn_acc = 0.0, 0.0
-        patch_sizes = [args.batch_size, 1, (datasets[0]).img_rows // (
-            2**args.patch_layers), (datasets[0]).img_cols // (2**args.patch_layers)]
-        start = time.time()
-        for epoch in range(1, args.epochs + 1):
-            self.epoch = epoch
-            # setup data loader
-            data_loader = DataLoader(datasets[0], args.batch_size, num_workers=0,
-                                     shuffle=True)
-            batch_iterator = iter(data_loader)
-            for step in range(steps):
-                self.iter += 1
-                if self.iter > args.iters:
-                    self.iter -= 1
-                    break
-                # prepare training Variable
-                x, y = next(batch_iterator)
-                x = Variable(x)
-                y = Variable(y)
-                posi_label = Variable(torch.ones(
-                    (*patch_sizes)), requires_grad=False)
-                nega_label = Variable(torch.zeros(
-                    (*patch_sizes)), requires_grad=False)
-                if args.cuda:
-                    x = x.cuda()
-                    y = y.cuda()
-                    posi_label = posi_label.cuda()
-                    nega_label = nega_label.cuda()
-
-                gen_y = net.generator(x)
-                if self.is_multi:
-                    gen_y = gen_y[0]
-
-                ############################
-                # update Discriminator network: \
-                # maximize log(D(x)) + log(1 - D(G(z)))
-                ###########################
-
-                net.discriminator.zero_grad()
-
-                # train with fake
-                fake_pair = torch.cat([x, gen_y.detach()], 1)
-                gen_logit_y = net.discriminator(fake_pair)
-                d_gen_patch_error = F.mse_loss(gen_logit_y, nega_label)
-
-                # train with real
-                real_pair = torch.cat([x, y], 1)
-                real_logit_y = net.discriminator(real_pair)
-                d_real_patch_error = F.mse_loss(real_logit_y, posi_label)
-
-                if self.iter % 10 == 0:
-                    # combined error & update parameters
-                    d_patch_error = (d_gen_patch_error +
-                                     d_real_patch_error) * 0.5
-                    d_patch_error.backward()
-                    net.d_optimizer.step()
-
-                ############################
-                # update Generator network: \
-                # maximize log(D(G(z)))
-                ###########################
-
-                net.generator.zero_grad()
-
-                # G(A) should fake the discriminator
-                fake_pair = torch.cat([x, gen_y], 1)
-                fake_logit_y = net.discriminator(fake_pair)
-                gan_error = F.mse_loss(fake_logit_y, posi_label)
-
-                # G(A) should be consistent with B
-                cls_error = F.binary_cross_entropy(gen_y, y)
-
-                # # combined error & update paramenters
-                g_error = cls_error + gan_error
-                g_error.backward()
-                # update paramenters
-                net.g_optimizer.step()
-
-                print("\t Discriminator (Gen err : {:0.3f} ; Real err : {:0.3f} );  Generator (Cls err : {:0.3f} ; GAN err : {:0.3f} ); ".format(
-                    d_gen_patch_error.data[0], d_real_patch_error.data[0], cls_error.data[0], gan_error.data[0]))
-
-                # compute generator accuracy
-                # gan_acc = metrics.overall_accuracy(
-                #     fake_logit_y.data, posi_label.data)
-                trn_acc += metrics.overall_accuracy(gen_y.data, y.data)
-                trn_loss += g_error.data[0]
-
-                # logging
-                if self.iter % args.iter_interval == 0:
-                    _time = time.time() - start
-                    nb_samples = args.iter_interval * args.batch_size
-                    trn_log = [trn_loss / args.iter_interval, trn_acc /
-                                 args.iter_interval, _time, nb_samples / _time]
-                    self.trn_log = [float(x) for x in trn_log]
-                    self.validating(net.generator, datasets[1])
-                    self.logging(verbose=True)
-                    # reinitialize
-                    start = time.time()
-                    trn_loss, trn_acc = 0, 0
 
 

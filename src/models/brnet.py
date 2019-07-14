@@ -118,14 +118,14 @@ class Backend(nn.Module):
         return ux4, ux3, ux2, ux1
 
 
-class BRNetv0(nn.Module):
+class BRNet(nn.Module):
     def __init__(self,
                  nb_channel=3,
                  nb_class=1,
                  base_kernel=64,
                  is_bn=True,
                  is_leaky=True,):
-        super(BRNetv0, self).__init__()
+        super(BRNet, self).__init__()
         is_deconv = False
         alpha = 0.1
         kernels = [x * base_kernel for x in [1, 2, 4, 8, 16]]
@@ -347,7 +347,7 @@ if __name__ == "__main__":
     x = torch.FloatTensor(
         np.random.random((1, nb_channel, 224, 224)))
 
-    generator = BRNetv0(nb_channel=3, nb_class=1)
+    generator = BRNet(nb_channel=3, nb_class=1)
     total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("BRNetv0->:")

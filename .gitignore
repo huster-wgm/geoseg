@@ -1,6 +1,6 @@
 data/*
 dataset/*
-checkpoint/*.pth
+checkpoint/FCN*.pth
 result/area/*
 *.DS_Store
 __pycache__*
