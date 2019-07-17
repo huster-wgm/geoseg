@@ -125,7 +125,7 @@ Geoseg
 ```
 * Source code
 
-If you use the code for your research, please cite the paper.[LINK](https://arxiv.org/pdf/1809.03175.pdf)
+> If you use the code for your research, please cite the paper.[LINK](https://arxiv.org/pdf/1809.03175.pdf)
 ```
 @article{wu2018geoseg,
   title={Geoseg: A Computer Vision Package for Automatic Building Segmentation and Outline Extraction},
