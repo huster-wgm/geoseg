@@ -1,9 +1,9 @@
 #!/bin/bash
 echo "Evaluating basic models";
-for root in Vaihingen PotsdamRGB PotsdamIRRG; do
+for root in NZ32km2; do
     for net in FCN32s FCN16s FCN8s UNet SegNet ResUNet MCFCN BRNet FPN; do
         # checkpoint => FCN32-3*1*24-NZ32km2_iter_5000.pth
-        if [ $root == "NZ32km2" ]; then
+        if [ $root == NZ32km2 ]; then
             python src/test.py -root $root -checkpoints $net-3*1*24-$root\_iter_5000.pth;
         else
             python src/test.py -root $root -checkpoints $net-3*6*24-$root\_iter_5000.pth;

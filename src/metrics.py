@@ -82,7 +82,7 @@ def _get_weights(y_true, nb_ch):
     """
     batch_size, img_rows, img_cols = y_true.shape
     pixels = batch_size * img_rows * img_cols
-    weights = [torch.sum(y_true==i)/pixels for i in range(nb_ch)]
+    weights = [torch.sum(y_true==i) / pixels for i in range(nb_ch)]
     return weights
 
 
@@ -147,7 +147,6 @@ class OAAcc(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
-            channels += 1
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
@@ -177,23 +176,25 @@ class Precision(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
-            channels += 1
+            nb_tp = _get_tp(y_pred, y_true)
+            nb_fp = _get_fp(y_pred, y_true)
+            mperforms = nb_tp / (nb_tp + nb_fp + esp)
+            performs = None
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
-    
-        performs = torch.zeros(channels, 1)
-        labels = torch.unique(y_true).flip(0)
-        labels = labels[labels <= channels]
-        for label in labels:
-            y_true_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_true_l[y_true == label] = 1
-            y_pred_l[y_pred == label] = 1
-            nb_tp = _get_tp(y_pred_l, y_true_l)
-            nb_fp = _get_fp(y_pred_l, y_true_l)
-            performs[int(label)] = nb_tp / (nb_tp + nb_fp + esp)
-        mperforms = torch.sum(performs, 0) / len(labels)
+            performs = torch.zeros(channels, 1)
+            labels = torch.unique(y_true).flip(0)
+            labels = labels[labels <= channels]
+            for label in labels:
+                y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_true_l[y_true == label] = 1
+                y_pred_l[y_pred == label] = 1
+                nb_tp = _get_tp(y_pred_l, y_true_l)
+                nb_fp = _get_fp(y_pred_l, y_true_l)
+                performs[int(label)] = nb_tp / (nb_tp + nb_fp + esp)
+            mperforms = torch.sum(performs, 0) / len(labels)
         return mperforms, performs
 
 
@@ -216,23 +217,25 @@ class Recall(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
-            channels += 1
+            nb_tp = _get_tp(y_pred, y_true)
+            nb_fn = _get_fn(y_pred, y_true)
+            mperforms = nb_tp / (nb_tp + nb_fn + esp)
+            performs = None
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
-
-        performs = torch.zeros(channels, 1)
-        labels = torch.unique(y_true).flip(0)
-        labels = labels[labels <= channels]
-        for label in labels:
-            y_true_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_true_l[y_true == label] = 1
-            y_pred_l[y_pred == label] = 1
-            nb_tp = _get_tp(y_pred_l, y_true_l)
-            nb_fn = _get_fn(y_pred_l, y_true_l)
-            performs[int(label)] = nb_tp / (nb_tp + nb_fn + esp)
-        mperforms = torch.sum(performs, 0) / len(labels)
+            performs = torch.zeros(channels, 1)
+            labels = torch.unique(y_true).flip(0)
+            labels = labels[labels <= channels]
+            for label in labels:
+                y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_true_l[y_true == label] = 1
+                y_pred_l[y_pred == label] = 1
+                nb_tp = _get_tp(y_pred_l, y_true_l)
+                nb_fn = _get_fn(y_pred_l, y_true_l)
+                performs[int(label)] = nb_tp / (nb_tp + nb_fn + esp)
+            mperforms = torch.sum(performs, 0) / len(labels)
         return mperforms, performs
 
 
@@ -256,27 +259,32 @@ class F1Score(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
-            channels += 1
+            nb_tp = _get_tp(y_pred, y_true)
+            nb_fp = _get_fp(y_pred, y_true)
+            nb_fn = _get_fn(y_pred, y_true)
+            _precision = nb_tp / (nb_tp + nb_fp + esp)
+            _recall = nb_tp / (nb_tp + nb_fn + esp)
+            mperforms = 2 * _precision * _recall / (_precision + _recall + esp)
+            performs = None
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
-
-        performs = torch.zeros(channels, 1)
-        labels = torch.unique(y_true).flip(0)
-        labels = labels[labels <= channels]
-        for label in labels:
-            y_true_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_true_l[y_true == label] = 1
-            y_pred_l[y_pred == label] = 1
-            nb_tp = _get_tp(y_pred_l, y_true_l)
-            nb_fp = _get_fp(y_pred_l, y_true_l)
-            nb_fn = _get_fn(y_pred_l, y_true_l)
-            _precision = nb_tp / (nb_tp + nb_fp + esp)
-            _recall = nb_tp / (nb_tp + nb_fn + esp)
-            performs[int(label)] = 2 * _precision * \
-                _recall / (_precision + _recall + esp)
-        mperforms = torch.sum(performs, 0) / len(labels)
+            performs = torch.zeros(channels, 1)
+            labels = torch.unique(y_true).flip(0)
+            labels = labels[labels <= channels]
+            for label in labels:
+                y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_true_l[y_true == label] = 1
+                y_pred_l[y_pred == label] = 1
+                nb_tp = _get_tp(y_pred_l, y_true_l)
+                nb_fp = _get_fp(y_pred_l, y_true_l)
+                nb_fn = _get_fn(y_pred_l, y_true_l)
+                _precision = nb_tp / (nb_tp + nb_fp + esp)
+                _recall = nb_tp / (nb_tp + nb_fn + esp)
+                performs[int(label)] = 2 * _precision * \
+                    _recall / (_precision + _recall + esp)
+            mperforms = torch.sum(performs, 0) / len(labels)
         return mperforms, performs
 
 
@@ -300,29 +308,37 @@ class Kappa(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
-            channels += 1
+            nb_tp = _get_tp(y_pred, y_true)
+            nb_fp = _get_fp(y_pred, y_true)
+            nb_tn = _get_tn(y_pred, y_true)
+            nb_fn = _get_fn(y_pred, y_true)
+            nb_total = nb_tp + nb_fp + nb_tn + nb_fn
+            Po = (nb_tp + nb_tn) / nb_total
+            Pe = ((nb_tp + nb_fp) * (nb_tp + nb_fn) +
+                  (nb_fn + nb_tn) * (nb_fp + nb_tn)) / (nb_total**2)
+            mperforms = (Po - Pe) / (1 - Pe + esp)
+            performs = None
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
-
-        performs = torch.zeros(channels, 1)
-        labels = torch.unique(y_true).flip(0)
-        labels = labels[labels <= channels]
-        for label in labels:
-            y_true_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_true_l[y_true == label] = 1
-            y_pred_l[y_pred == label] = 1
-            nb_tp = _get_tp(y_pred_l, y_true_l)
-            nb_fp = _get_fp(y_pred_l, y_true_l)
-            nb_tn = _get_tn(y_pred_l, y_true_l)
-            nb_fn = _get_fn(y_pred_l, y_true_l)
-            nb_total = nb_tp + nb_fp + nb_tn + nb_fn
-            Po = (nb_tp + nb_tn) / nb_total
-            Pe = ((nb_tp + nb_fp) * (nb_tp + nb_fn)
-                  + (nb_fn + nb_tn) * (nb_fp + nb_tn)) / (nb_total**2)
-            performs[int(label)] = (Po - Pe) / (1 - Pe + esp)
-        mperforms = torch.sum(performs, 0) / len(labels)
+            performs = torch.zeros(channels, 1)
+            labels = torch.unique(y_true).flip(0)
+            labels = labels[labels <= channels]
+            for label in labels:
+                y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_true_l[y_true == label] = 1
+                y_pred_l[y_pred == label] = 1
+                nb_tp = _get_tp(y_pred_l, y_true_l)
+                nb_fp = _get_fp(y_pred_l, y_true_l)
+                nb_tn = _get_tn(y_pred_l, y_true_l)
+                nb_fn = _get_fn(y_pred_l, y_true_l)
+                nb_total = nb_tp + nb_fp + nb_tn + nb_fn
+                Po = (nb_tp + nb_tn) / nb_total
+                Pe = ((nb_tp + nb_fp) * (nb_tp + nb_fn)
+                      + (nb_fn + nb_tn) * (nb_fp + nb_tn)) / (nb_total**2)
+                performs[int(label)] = (Po - Pe) / (1 - Pe + esp)
+            mperforms = torch.sum(performs, 0) / len(labels)
         return mperforms, performs
 
 
@@ -345,23 +361,25 @@ class Jaccard(object):
         if channels == 1:
             y_pred = _binarize(y_pred, threshold)
             y_true = _binarize(y_true, threshold)
-            channels += 1
+            _intersec = torch.sum(y_true * y_pred)
+            _sum = torch.sum(y_true + y_pred)
+            mperforms =  _intersec / (_sum - _intersec + esp)
+            performs = None
         else:
             y_pred = _argmax(y_pred, dim)
             y_true = _argmax(y_true, dim)
-
-        performs = torch.zeros(channels, 1)
-        labels = torch.unique(y_true).flip(0)
-        labels = labels[labels <= channels]
-        for label in labels:
-            y_true_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
-            y_true_l[y_true == label] = 1
-            y_pred_l[y_pred == label] = 1
-            _intersec = torch.sum(y_true_l * y_pred_l).float()
-            _sum = torch.sum(y_true_l + y_pred_l).float()
-            performs[int(label)] = _intersec / (_sum - _intersec + esp)
-        mperforms = torch.sum(performs, 0) / len(labels)
+            performs = torch.zeros(channels, 1)
+            labels = torch.unique(y_true).flip(0)
+            labels = labels[labels <= channels]
+            for label in labels:
+                y_true_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_pred_l = torch.zeros(batch_size, img_rows, img_cols)
+                y_true_l[y_true == label] = 1
+                y_pred_l[y_pred == label] = 1
+                _intersec = torch.sum(y_true_l * y_pred_l).float()
+                _sum = torch.sum(y_true_l + y_pred_l).float()
+                performs[int(label)] = _intersec / (_sum - _intersec + esp)
+            mperforms = torch.sum(performs, 0) / len(labels)
         return mperforms, performs
 
 

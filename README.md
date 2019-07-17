@@ -49,22 +49,16 @@ Geoseg
 - Download repo.
 > git clone  https://github.com/huster-wgm/geoseg.git
 
-- Download dataset
-> Training dataset [Google Drive](https://drive.google.com/file/d/1boGcJz9TyK9XB4GUhjCHVu8XGtbgjjbi/view?usp=sharing) or
-> [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA).
+- Download dataset NZ32km2
+> Training dataset [Google Drive](https://drive.google.com/open?id=1PNkGLRT8J9h4Cx9iyS0Bh9vamQS_KOTz) or
+<del> [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA)<del>
 Details about the dataset can be found at <a href='#citation'>Citation</a>.
 
-- Download pre-trainded models [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing) or [Baidu Yun](https://pan.baidu.com/s/1ORYdDLDi5HzO1lU_1zsQUQ) code: uwxk
-> 1. FCN8s_iter_5000.pth
-> 2. FCN16s_iter_5000.pth
-> 3. FCN32s_iter_5000.pth
-> 4. SegNet_iter_5000.pth
-> 5. UNet_iter_5000.pth
-> 6. FPN_iter_5000.pth
-> 7. ResUNet_iter_5000.pth
-> 8. MC-FCN_iter_5000.pth
-> 9. BR-Net_iter_5000.pth
-> * Upcoming ...
+- Download pre-trainded models 
+    * On NZ32km2(Binary building segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
+    * On ISPRS Vaihingen (6-class segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
+    * On ISPRS Potsdam (6-class segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
+(Only FCN8s, 16s, and 32s. Others [here](./checkpoint))
 
 - Step-by-step tutorial
 > Jupyter-notebook [LINK](./How-to.ipynb)
@@ -73,19 +67,27 @@ Details about the dataset can be found at <a href='#citation'>Citation</a>.
 
 - Performance
 
-![performance](./result/excel/performance.png)
+![performance](./result/performs.csv)
 
 - Computational efficiency
 
-![time](./result/excel/computational.png)
+[Speed](./logs/speed.csv)
 
-### Visualization
+
+### Visualization [LINK](./logs/snapshot)
+
 
 - Learning Curve (FCN8s)
-![FCN8s training curve](./logs/curve/FCN8s_iter_5000.png)
+![FCN8s training curve](./logs/curve/FCN8s-3*1*24-NZ32km2_iter_5000.png)
 
-- Segmentation and outline extraction (FCN8s)
-![FCN8s segmentation maps](./result/single/FCN8s_canny_segmap_edge_1.png)
+- Binary Segmentation (FCN8s-3*1*24-NZ32km2)
+![FCN8s NZ32km2](./logs/snapshot/FCN8s-3*1*24-NZ32km2/FCN8s-3*1*24-NZ32km2_iter-05000.png)
+
+- Multi-class Segmentation (FCN8s-3*6*24-Vaihingen)
+![FCN8s Vaihingen](./logs/snapshot/FCN8s-3*6*24-Vaihingen/FCN8s-3*6*24-Vaihingen_iter-05000.png)
+
+- Multi-class Segmentation (FCN8s-3*6*24-Potsdam)
+![FCN8s Potsdam](./logs/snapshot/FCN8s-3*6*24-PotsdamRGB/FCN8s-3*6*24-PotsdamRGB_iter-05000.png)
 
 ### TODO
 - Update training & testing data
