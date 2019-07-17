@@ -51,31 +51,30 @@ Geoseg
 
 - Download dataset NZ32km2
 > Training dataset [Google Drive](https://drive.google.com/open?id=1PNkGLRT8J9h4Cx9iyS0Bh9vamQS_KOTz) or
-<del> [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA)<del>
-Details about the dataset can be found at <a href='#citation'>Citation</a>.
+<del> [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA) <del>
+
+> Details about the dataset can be found at <a href='#citation'>Citation</a>.
 
 - Download pre-trainded models 
     * On NZ32km2(Binary building segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
     * On ISPRS Vaihingen (6-class segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
     * On ISPRS Potsdam (6-class segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
-(Only FCN8s, 16s, and 32s. Others [here](./checkpoint))
+
+> (Only FCN8s, 16s, and 32s. Others [here](./checkpoint))
 
 - Step-by-step tutorial
 > Jupyter-notebook [LINK](./How-to.ipynb)
 
 ### Performance
 
-- Performance
+- [Performance](./result/performs.csv)
 
-![performance](./result/performs.csv)
-
-- Computational efficiency
-
-[Speed](./logs/speed.csv)
+- [Computational efficiency](./logs/speed.csv)
 
 
-### Visualization [LINK](./logs/snapshot)
+### Visualization 
 
+[LINK](./logs/snapshot)
 
 - Learning Curve (FCN8s)
 ![FCN8s training curve](./logs/curve/FCN8s-3*1*24-NZ32km2_iter_5000.png)
@@ -87,14 +86,16 @@ Details about the dataset can be found at <a href='#citation'>Citation</a>.
 ![FCN8s Vaihingen](./logs/snapshot/FCN8s-3*6*24-Vaihingen/FCN8s-3*6*24-Vaihingen_iter-05000.png)
 
 - Multi-class Segmentation (FCN8s-3*6*24-Potsdam)
-![FCN8s Potsdam](./logs/snapshot/FCN8s-3*6*24-PotsdamRGB/FCN8s-3*6*24-PotsdamRGB_iter-05000.png)
+![FCN8s Potsdam](./logs/snapshot/FCN8s-3*6*24-PotsdamRGB/FCN8s-3*6*24-PotsdamRGB_iter-04500.png)
 
 ### TODO
 - Update training & testing data
 - Add support for more dataset
 
 ### Citation
-The location, scale and resolution of the dataset please refer to paper.[LINK](https://www.mdpi.com/2072-4292/10/8/1195/htm)
+
+* NZ32km2 dataset
+> The location, scale, resolution and preprocessing of the NZ32km2 dataset please refer to paper.[LINK](https://www.mdpi.com/2072-4292/10/8/1195/htm)
 ```
 @article{wu2018boundary,
   title={A boundary regulated network for accurate roof segmentation and outline extraction},
@@ -107,6 +108,23 @@ The location, scale and resolution of the dataset please refer to paper.[LINK](h
   publisher={Multidisciplinary Digital Publishing Institute}
 }
 ```
+* ISPRS Vaihingen dataset
+> The location, scale, resolution and preprocessingof the ISPRS Vaihingen dataset please refer to paper.[LINK](https://www.mdpi.com/2072-4292/11/9/1051/htm)
+
+```
+@article{wu2019stacked,
+  title={A Stacked Fully Convolutional Networks with Feature Alignment Framework for Multi-Label Land-cover Segmentation},
+  author={Wu, Guangming and Guo, Yimin and Song, Xiaoya and Guo, Zhiling and Zhang, Haoran and Shi, Xiaodan and Shibasaki, Ryosuke and Shao, Xiaowei},
+  journal={Remote Sensing},
+  volume={11},
+  number={9},
+  pages={1051},
+  year={2019},
+  publisher={Multidisciplinary Digital Publishing Institute}
+}
+```
+* Source code
+
 If you use the code for your research, please cite the paper.[LINK](https://arxiv.org/pdf/1809.03175.pdf)
 ```
 @article{wu2018geoseg,
