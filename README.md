@@ -3,6 +3,7 @@
 ## Table of Contents
 - <a href='#requirements'>Requirements</a>
 - <a href='#organization'>Organization</a>
+- <a href='#models'>Models</a>
 - <a href='#usage'>Usage</a>
 - <a href='#performance'>Performance</a>
 - <a href='#visualization'>Visualization</a>
@@ -43,6 +44,9 @@ Geoseg
     └── vision.py
   
 ```
+
+### Organization
+[DETAILS](./src/models/Archs.md)
 
 ### Usage
 
