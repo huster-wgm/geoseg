@@ -4,7 +4,7 @@
 # Table of Contents
 
 - <a href='#Implemented models'>Implemented models</a>
-    - <a href='#FCN'>FCN</a>
+    - <a href='#FCNs'>FCNs</a>
     - <a href='#U-Net'>U-Net</a>
     - <a href='#SegNet'>SegNet</a>
     - <a href='#FPN'>FPN</a>
@@ -22,7 +22,7 @@
 # Implemented models
 
 
-## FCN
+## FCNs
 Fully Convolutional Networks for Semantic Segmentation
 > ### a> Architecture
 ![architecture](http://deeplearning.net/tutorial/_images/fcn.png)
