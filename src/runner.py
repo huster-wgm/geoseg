@@ -82,7 +82,7 @@ class Base(object):
         if os.path.exists(os.path.join(Logs_DIR, 'speed.csv')):
             prev_df = pd.read_csv(os.path.join(Logs_DIR, 'speed.csv'))
             df = prev_df.append(df)
-        df.to_csv(os.path.join(Logs_DIR, 'speed.csv'), index=False)
+        df.to_csv(os.path.join(Logs_DIR, 'speed.csv'), index=False, float_format='%.3f')
 
     def save_checkpoint(self, net):
         torch.save(net.state_dict(), os.path.join(Checkpoint_DIR, "{}.pth".format(self.repr)))
@@ -214,7 +214,7 @@ class Trainer(Base):
         if os.path.exists(os.path.join(Checkpoint_DIR, 'checkpoint.csv')):
             prev_df = pd.read_csv(os.path.join(Checkpoint_DIR, 'checkpoint.csv'))
             df = prev_df.append(df)
-        df.to_csv(os.path.join(Checkpoint_DIR, 'checkpoint.csv'), index=False)
+        df.to_csv(os.path.join(Checkpoint_DIR, 'checkpoint.csv'), index=False, float_format="%.3f")
 
         print("Best {} Performance: \n".format(repr(self.evaluator)))
         print("\t Trn:", best_trn_perform)
@@ -338,7 +338,7 @@ class brTrainer(Trainer):
         if os.path.exists(os.path.join(Checkpoint_DIR, 'checkpoint.csv')):
             prev_df = pd.read_csv(os.path.join(Checkpoint_DIR, 'checkpoint.csv'))
             df = prev_df.append(df)
-        df.to_csv(os.path.join(Checkpoint_DIR, 'checkpoint.csv'), index=False)
+        df.to_csv(os.path.join(Checkpoint_DIR, 'checkpoint.csv'), index=False, float_format="%.3f")
 
         print("Best {} Performance: \n".format(repr(self.evaluator)))
         print("\t Trn:", best_trn_perform)

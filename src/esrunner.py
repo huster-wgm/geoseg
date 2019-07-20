@@ -88,7 +88,7 @@ class Base(object):
         if os.path.exists(os.path.join(Logs_DIR, 'speed.csv')):
             prev_df = pd.read_csv(os.path.join(Logs_DIR, 'speed.csv'))
             df = prev_df.append(df)
-        df.to_csv(os.path.join(Logs_DIR, 'speed.csv'), index=False)
+        df.to_csv(os.path.join(Logs_DIR, 'speed.csv'), index=False, float_format='%.3f')
 
     def save_checkpoint(self, net):
         for name, model in zip(net.names, net.models):

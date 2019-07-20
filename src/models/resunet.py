@@ -6,6 +6,7 @@
   @License: MIT
 """
 import numpy as np
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -48,7 +49,7 @@ class ResUNet(nn.Module):
         self.encoder4 = self._make_layer(block, kernels[4], layers[3], stride=2, is_leaky=is_leaky)
 
         # up&concating
-        self.decoder4 = UNetUpx2(
+        self.decoder4 = UNetUpx3(
             kernels[4], kernels[3], True, True, is_leaky)
         self.decoder3 = UNetUpx2(
             kernels[3], kernels[2], True, True, is_leaky)

@@ -32,7 +32,7 @@ class MCFCN(nn.Module):
             kernels[1], kernels[2], is_bn=True)
         self.maxpool3 = nn.MaxPool2d(2)
 
-        self.downblock4 = UNetDownx2(
+        self.downblock4 = UNetDownx3(
             kernels[2], kernels[3], is_bn=True)
         self.maxpool4 = nn.MaxPool2d(2)
 
@@ -40,7 +40,7 @@ class MCFCN(nn.Module):
         self.center = ConvBlock(kernels[3], kernels[4], is_bn=True)
 
         # up&concating
-        self.upblock4 = UNetUpx2(
+        self.upblock4 = UNetUpx3(
             kernels[4], kernels[3], is_bn=True)
         self.outconv4 = nn.Sequential(
             nn.Conv2d(kernels[3], nb_class, 1),

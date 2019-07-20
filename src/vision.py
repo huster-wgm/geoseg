@@ -253,12 +253,11 @@ def yslices_to_tensor(slices, cmap):
     """
     if cmap.shape[0] > 2:
         # multi-class
-        arr = [img_to_label(slc, cmap) for slc in slices]
+        arr = [cls_to_label(slc, cmap.shape[0]) for slc in slices]
         arr = np.array(arr)
     else:
         # binary
         arr = np.expand_dims(np.array(slices), axis=-1)
-    del slices
     assert len(arr.shape) == 4, "Dimension should be 4"
     arr = arr.transpose((0, 3, 1, 2))
     return torch.from_numpy(arr).float()

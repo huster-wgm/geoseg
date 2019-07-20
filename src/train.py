@@ -25,7 +25,7 @@ def load_model(args):
     from models.resunet import ResUNet
     from models.fpn import FPN
     from models.mcfcn import MCFCN
-    from models.brnet import BRNet, BRNetv1, BRNetv2, BRNetv3, BRNetv4
+    from models.brnet import BRNet, BRNetv2
     
     net = eval(args.net)(args.src_ch, args.tar_ch, args.base_kernel)
     if args.cuda:
