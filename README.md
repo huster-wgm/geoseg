@@ -54,15 +54,17 @@ Geoseg
 > git clone  https://github.com/huster-wgm/geoseg.git
 
 - Download dataset NZ32km2
-> Training dataset [Google Drive](https://drive.google.com/open?id=1PNkGLRT8J9h4Cx9iyS0Bh9vamQS_KOTz) or
+> [Google Drive](https://drive.google.com/open?id=1PNkGLRT8J9h4Cx9iyS0Bh9vamQS_KOTz) or
 <del> [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA) <del>
 
-> Details about the dataset can be found at <a href='#citation'>Citation</a>.
+- Download dataset Vaihingen
+> [ISPRS](http://www2.isprs.org/commissions/comm3/wg4/2d-sem-label-vaihingen.html)
 
-- Download pre-trainded models 
+> Details about the datasets can be found at <a href='#citation'>Citation</a>.
+
+- Download pre-trainded models (FCNs)
     * On NZ32km2(Binary building segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
     * On ISPRS Vaihingen (6-class segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
-    * On ISPRS Potsdam (6-class segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
 
 > (Only FCN8s, 16s, and 32s. Others [here](./checkpoint))
 
@@ -71,7 +73,9 @@ Geoseg
 
 ### Performance
 
-- [Performance](./result/performs.csv)
+- [Patch Performance](./result/patchPerforms.csv)
+
+- [Area Performance](./result/areaPerforms.csv)
 
 - [Computational efficiency](./logs/speed.csv)
 
@@ -80,17 +84,18 @@ Geoseg
 
 [LINK](./logs/snapshot)
 
-- Learning Curve (FCN8s)
+- Learning Curve (FCN8s on NZ32km2)
 ![FCN8s training curve](./logs/curve/FCN8s-3*1*24-NZ32km2_iter_5000.png)
 
-- Binary Segmentation (FCN8s-3*1*24-NZ32km2)
+- Binary Segmentation (FCN8s-3\*1\*24-NZ32km2)
 ![FCN8s NZ32km2](./logs/snapshot/FCN8s-3*1*24-NZ32km2/FCN8s-3*1*24-NZ32km2_iter-05000.png)
 
-- Multi-class Segmentation (FCN8s-3*6*24-Vaihingen)
+- Learning Curve (FCN8s on Vaihingen)
+![FCN8s training curve](./logs/curve/FCN8s-3*6*24-Vaihingen_iter_5000.png)
+
+- Multi-class Segmentation (FCN8s-3\*6\*24-Vaihingen)
 ![FCN8s Vaihingen](./logs/snapshot/FCN8s-3*6*24-Vaihingen/FCN8s-3*6*24-Vaihingen_iter-05000.png)
 
-- Multi-class Segmentation (FCN8s-3*6*24-Potsdam)
-![FCN8s Potsdam](./logs/snapshot/FCN8s-3*6*24-PotsdamRGB/FCN8s-3*6*24-PotsdamRGB_iter-04500.png)
 
 ### TODO
 - Update training & testing data
