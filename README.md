@@ -45,7 +45,7 @@ Geoseg
   
 ```
 
-### Organization
+### Models
 [DETAILS](./src/models/Archs.md)
 
 ### Usage
@@ -84,17 +84,17 @@ Geoseg
 
 [LINK](./logs/snapshot)
 
-- Learning Curve (FCN8s on NZ32km2)
-![FCN8s training curve](./logs/curve/FCN8s-3*1*24-NZ32km2_iter_5000.png)
+- Learning Curve (BR-Net on NZ32km2)
+![FCN8s training curve](./logs/curve/BRNet-3*1*24-NZ32km2_iter_5000.png)
 
-- Binary Segmentation (FCN8s-3\*1\*24-NZ32km2)
-![FCN8s NZ32km2](./logs/snapshot/FCN8s-3*1*24-NZ32km2/FCN8s-3*1*24-NZ32km2_iter-05000.png)
+- Binary Segmentation (BRNet-3\*1\*24-NZ32km2)
+![FCN8s NZ32km2](./logs/snapshot/BRNet-3*1*24-NZ32km2/BRNet-3*1*24-NZ32km2_iter-05000.png)
 
-- Learning Curve (FCN8s on Vaihingen)
-![FCN8s training curve](./logs/curve/FCN8s-3*6*24-Vaihingen_iter_5000.png)
+- Learning Curve (BRNet on Vaihingen)
+![FCN8s training curve](./logs/curve/BRNet-3*6*24-Vaihingen_iter_5000.png)
 
-- Multi-class Segmentation (FCN8s-3\*6\*24-Vaihingen)
-![FCN8s Vaihingen](./logs/snapshot/FCN8s-3*6*24-Vaihingen/FCN8s-3*6*24-Vaihingen_iter-05000.png)
+- Multi-class Segmentation (BRNet-3\*6\*24-Vaihingen)
+![FCN8s Vaihingen](./logs/snapshot/BRNet-3*6*24-Vaihingen/BRNet-3*6*24-Vaihingen_iter-05000.png)
 
 
 ### TODO
