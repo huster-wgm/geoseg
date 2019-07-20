@@ -53,18 +53,18 @@ Geoseg
 - Download repo.
 > git clone  https://github.com/huster-wgm/geoseg.git
 
-- Download dataset NZ32km2
+- Download data => NZ32km2
 > [Google Drive](https://drive.google.com/open?id=1PNkGLRT8J9h4Cx9iyS0Bh9vamQS_KOTz) or
 <del> [Baidu Yun](https://pan.baidu.com/s/1ujpzi8CgH_H5KSzhR1_bZA) <del>
 
-- Download dataset Vaihingen
+- Download data => Vaihingen
 > [ISPRS](http://www2.isprs.org/commissions/comm3/wg4/2d-sem-label-vaihingen.html)
 
 > Details about the datasets can be found at <a href='#citation'>Citation</a>.
 
 - Download pre-trainded models (FCNs)
-    * On NZ32km2(Binary building segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
-    * On ISPRS Vaihingen (6-class segmentation) [Google Drive](https://drive.google.com/drive/folders/1ARbfh-um2c83r1nMegvS7IoCuRKovNuv?usp=sharing)
+    * On NZ32km2(Binary building segmentation) [Google Drive](https://drive.google.com/open?id=1Mh8tspqCrj9anezLyIxJzzRggg8dfrl-)
+    * On ISPRS Vaihingen (6-class segmentation) [Google Drive](https://drive.google.com/open?id=1EsdECMV5MX1VqsL0JYFEQVDYfM_g_1K-)
 
 > (Only FCN8s, 16s, and 32s. Others [here](./checkpoint))
 
