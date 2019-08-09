@@ -196,38 +196,51 @@ class BRNetv2(nn.Module):
 
         # branch for outline
         self.upscale_x2 = nn.ConvTranspose2d(
-                nb_class, nb_class, 2, stride=2, output_padding=0)
+                kernels[4], kernels[3], 2, stride=2, output_padding=0)
         self.upscale_x4 = nn.ConvTranspose2d(
-                nb_class, nb_class, 2, stride=4, output_padding=2)
+                kernels[3], kernels[2], 2, stride=2, output_padding=0)
         self.upscale_x8 = nn.ConvTranspose2d(
-                nb_class, nb_class, 2, stride=8, output_padding=6)
+                kernels[2], kernels[1], 2, stride=2, output_padding=0)
+        self.upscale_x16 = nn.ConvTranspose2d(
+                kernels[1], kernels[0], 2, stride=2, output_padding=0)
 
-
-        self.segmap = nn.Sequential(
-            nn.Conv2d(4 * nb_class, nb_class, 3, padding=1),
+        # generate output
+        self.outconv1 = nn.Sequential(
+            nn.Conv2d(kernels[0], nb_class, 1),
             nn.Sigmoid() if nb_class == 1 else nn.Softmax(dim=1),)
 
-        self.outline = nn.Sequential(
-            nn.Conv2d(4 * nb_class, nb_class, 3, padding=1),
+        self.outconv2 = nn.Sequential(
+            nn.Conv2d(kernels[0], nb_class, 1),
             nn.Sigmoid() if nb_class == 1 else nn.Softmax(dim=1),)
 
     def forward(self, x):
-        ux4, ux3, ux2, ux1 = self.backend(x)
-        out_4 = self.outconv4(ux4)
-        out_4 = self.upscale_x8(out_4)
+        dx11 = self.downblock1(x)
+        dx12 = self.maxpool1(dx11)
 
-        out_3 = self.outconv3(ux3)
-        out_3 = self.upscale_x4(out_3)
+        dx21 = self.downblock2(dx12)
+        dx22 = self.maxpool2(dx21)
 
-        out_2 = self.outconv2(ux2)
-        out_2 = self.upscale_x2(out_2)
+        dx31 = self.downblock3(dx22)
+        dx32 = self.maxpool3(dx31)
+
+        dx41 = self.downblock4(dx32)
+        dx42 = self.maxpool4(dx41)
+
+        cx = self.center(dx42)
+        # segmentation branch
+        ux4 = self.upblock4(cx, dx41)
+        ux3 = self.upblock3(ux4, dx31)
+        ux2 = self.upblock2(ux3, dx21)
+        ux1 = self.upblock1(ux2, dx11)
+        # outline branch
+        ud4 = self.upscale_x2(cx)
+        ud3 = self.upscale_x4(ud4)
+        ud2 = self.upscale_x8(ud3)
+        ud1 = self.upscale_x16(ud2)
 
         out_1 = self.outconv1(ux1)
-
-        feats = torch.cat([out_1, out_2, out_3, out_4], dim=1)
-        seg = self.segmap(feats)
-        ol = self.outline(feats)
-        return seg, ol
+        out_2 = self.outconv2(ud1)
+        return out_1, out_2
 
 
 if __name__ == "__main__":
@@ -250,5 +263,6 @@ if __name__ == "__main__":
     total_params = sum(p.numel() for p in generator.parameters())
     gen_y = generator(x)
     print("BRNetv2->:")
+    print(" Params: {:0.1f}M".format(total_params / (10**6)))
     print(" Network output 1", gen_y[0].shape)
     print(" Network output 2", gen_y[1].shape)
