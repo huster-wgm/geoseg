@@ -36,7 +36,7 @@ if not os.path.exists(Checkpoint_DIR):
 
 
 class Base(object):
-    def __init__(self, args, method, is_multi=False):
+    def __init__(self, args, method, is_multi=False, loss='CELoss', metric='Kappa'):
         self.args = args
         self.method = method
         self.is_multi = is_multi
@@ -46,11 +46,8 @@ class Base(object):
         self.epoch = 0
         self.iter = 0
         self.logs = []
-        if args.tar_ch > 1:
-            self.criterion = losses.MCELoss()
-        else:
-            self.criterion = losses.BCELoss()
-        self.evaluator = metrics.OAAcc()
+        self.criterion = eval('{}.{}()'.format('losses', loss))
+        self.evaluator = eval('{}.{}()'.format('metrics', metric))
         self.snapshot = os.path.join(Logs_DIR, "snapshot", self.method)
         if not os.path.exists(self.snapshot):
             os.makedirs(self.snapshot)
@@ -131,6 +128,12 @@ class Base(object):
         src_img = dataset._src2img(src)
         tar_img = dataset._tar2img(tar)
         gen_img = dataset._tar2img(gen)
+        if src_img.shape[:2] != tar_img.shape[:2]:
+            space = (src_img.shape[0] - tar_img.shape[0]) // 2
+            tar_img = dataset._whitespace(tar_img, space)
+            gen_img = dataset._whitespace(gen_img, space)
+            assert src_img.shape[:2] == tar_img.shape[:2], 'size should be consistent.'
+
         vis_img = dataset._whitespace(np.concatenate(
             [src_img, tar_img, gen_img], axis=1))
         # save image
@@ -162,6 +165,7 @@ class Trainer(Base):
         net.train()
         trn_loss, trn_acc = [], []
         start = time.time()
+        selector = losses.NearestSelector(shift=5)
         for epoch in range(1, args.epochs + 1):
             self.epoch = epoch
             # setup data loader
@@ -180,6 +184,7 @@ class Trainer(Base):
                     y = y.cuda()
                 # forwading
                 gen_y = net(x)
+                gen_y, y = selector.crop(gen_y, y)
                 loss = self.criterion(gen_y, y)
                 # update parameters
                 net.optimizer.zero_grad()
@@ -234,6 +239,7 @@ class Trainer(Base):
         val_loss, val_acc = [], []
         start = time.time()
         net.eval()
+        selector = losses.NearestSelector(shift=5)
         with torch.set_grad_enabled(False):
             for idx, sample in enumerate(data_loader):
                 # get tensors from sample
@@ -246,7 +252,7 @@ class Trainer(Base):
                 gen_y = net(x)
                 if self.is_multi:
                     gen_y = gen_y[0]
-
+                gen_y, y = selector.crop(gen_y, y)
                 val_loss.append(self.criterion(gen_y.detach(), y.detach()).item())
                 val_acc.append(self.evaluator(gen_y.detach(), y.detach())[0].item())
 
@@ -255,6 +261,7 @@ class Trainer(Base):
                         round(sum(val_acc) / len(val_acc), 3),
                         round(val_fps, 3)]
         self.save_snapshot(x.detach(), y.detach(), gen_y.detach(), dataset)
+
 
 class brTrainer(Trainer):
     def training(self, net, datasets):

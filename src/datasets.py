@@ -22,7 +22,7 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 Dataset_DIR = os.path.join(DIR, '../dataset/')
 
 
-class BinaryDataset(data.Dataset):
+class Basic(data.Dataset):
     """Binary datasets """
     def __init__(
             self, root='NZ32km2', split='all'):
@@ -56,15 +56,17 @@ class BinaryDataset(data.Dataset):
         tmp[width:row+width,width:width+col,:] = img
         return tmp
 
-    def _src2img(self, arr):
+    def _src2img(self, arr, whitespace=True):
         """
         Args:
             arr (str): ndarray [h,w,c]
         """
         img = (arr * 255).astype("uint8")
-        return self._whitespace(img)
+        if whitespace:
+            img = self._whitespace(img)
+        return img
 
-    def _tar2img(self, arr, x8=False):
+    def _tar2img(self, arr, sub8x=False, whitespace=True):
         """
         Args:
             arr (str): ndarray [h,w,c]
@@ -74,14 +76,17 @@ class BinaryDataset(data.Dataset):
         arr[arr >= 0.5] = 1
         arr = (arr * 255).astype('uint8')
         img = np.concatenate([arr, arr, arr], axis=-1)
-        if x8:
-            row, col = img.shape[:2]
-            img = cv2.resize(
-                img, (col * 8, row * 8), interpolation = cv2.INTER_NEAREST)
-        return self._whitespace(img)
+        if sub8x:
+            row, col, ch = img.shape
+            tmp = np.ones((row*8, col*8, ch), 'uint8') * 255
+            tmp[:row,:col,:] = img
+            img = tmp
+        if whitespace:
+            img = self._whitespace(img)
+        return img
 
 
-class BinaryIM(BinaryDataset):
+class BinaryIM(Basic):
     """Binary datasets with Img(I) and Mask(M)"""
     def __getitem__(self, idx):
         src_file = self.srcpath % self.datalist[idx]
@@ -108,7 +113,6 @@ class BinaryIM(BinaryDataset):
         # convert array to RGB img
         src_img = self._src2img(src)
         tar_img = self._tar2img(tar)
-
         vis_img = self._whitespace(np.concatenate([src_img, tar_img], axis=1))
         save_dir = os.path.join(DIR, "../example", self.root)
         if not os.path.exists(save_dir):
@@ -116,7 +120,7 @@ class BinaryIM(BinaryDataset):
         imsave("{}/{}-{}-IM.png".format(save_dir, self.split, idx), vis_img)
 
         
-class BinaryIMS(BinaryDataset):
+class BinaryIMS(Basic):
     """Binary datasets with Img(I), Mask(M) and 1/8 Sub-Mask(S)
        required data format for MC-FCN \
        "Automatic Building Segmentation of Aerial Imagery Using Multi-Constraint Fully Convolutional Networks. \
@@ -163,8 +167,45 @@ class BinaryIMS(BinaryDataset):
             os.makedirs(save_dir)
         imsave("{}/{}-{}-IMS.png".format(save_dir, self.split, idx), vis_img)
 
-        
-class BinaryIME(BinaryDataset):
+
+class BinaryIE(Basic):
+    """Binary datasets with Img(I) and Edge(E)
+    """
+    def __getitem__(self, idx):
+        src_file = self.srcpath % self.datalist[idx]
+        tar_file = self.tarpath % self.datalist[idx]
+
+        src = imread(src_file)
+        tar = imread(tar_file)
+        assert len(tar.shape) == 2, "Mask should be 2D."
+        tar = vision.shift_edge(tar, self.tar_ch)
+        # src => uint8 to float tensor
+        src = (src / 255).transpose((2, 0, 1))
+        src = torch.from_numpy(src).float()
+        # tar => float to float tensor
+        tar = tar.transpose((2, 0, 1))
+        tar = torch.from_numpy(tar).float()
+        sample = {"src":src,
+                  "tar":tar,
+                 }
+        return sample
+
+    def show(self, idx):
+        sample = self.__getitem__(idx)
+        # tensor to array
+        src = sample['src'].numpy().transpose((1, 2, 0))
+        tar = sample['tar'].numpy().transpose((1, 2, 0))
+        # convert array to RGB img
+        src_img = self._src2img(src)
+        tar_img = self._tar2img(tar)
+        vis_img = self._whitespace(np.concatenate([src_img, tar_img], axis=1))
+        save_dir = os.path.join(DIR, "../example", self.root)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        imsave("{}/{}-{}-IE.png".format(save_dir, self.split, idx), vis_img)
+
+
+class BinaryIME(Basic):
     """Binary datasets with Img(I), Mask(M) and Edge(E)
        required data format for BR-Net \
        "A Boundary Regulated Network for Accurate Roof Segmentation and Outline Extraction \
@@ -210,7 +251,7 @@ class BinaryIME(BinaryDataset):
         imsave("{}/{}-{}-IME.png".format(save_dir, self.split, idx), vis_img)
 
 
-class MultiDataset(data.Dataset):
+class MBasic(Basic):
     """Multi-label datasets """
     def __init__(
             self, root='Vaihingen', split='all'):
@@ -233,42 +274,24 @@ class MultiDataset(data.Dataset):
         self.src_ch = 4 if 'RGBIR' in root else 3
         self.tar_ch = self.ref.shape[0]
 
-    def __len__(self):
-        return len(self.datalist)
-
-    def _whitespace(self, img, width=5):
-        """
-        Args:
-            img : ndarray [h,w,c]
-        """
-        row, col, ch = img.shape
-        tmp = np.ones((row + 2*width, col + 2*width, ch), "uint8") * 128
-        tmp[width:row+width,width:width+col,:] = img
-        return tmp
-
-    def _src2img(self, arr):
-        """
-        Args:
-            arr (str): ndarray [h,w,c]
-        """
-        img = (arr * 255).astype("uint8")
-        return self._whitespace(img)
-
-    def _tar2img(self, arr, x8=False):
+    def _tar2img(self, arr, sub8x=False, whitespace=True):
         """
         Args:
             arr (str): ndarray [h,w,c]
         """
         assert arr.shape[2] > 1, "Output should be multi channel."
         img = vision.label_to_img(arr, self.cmap)
-        if x8:
-            row, col = img.shape[:2]
-            img = cv2.resize(
-                img, (col * 8, row * 8), interpolation = cv2.INTER_NEAREST)
-        return self._whitespace(img)
+        if sub8x:
+            row, col, ch = img.shape
+            tmp = np.ones((row*8, col*8, ch), 'uint8') * 255
+            tmp[:row,:col,:] = img
+            img = tmp
+        if whitespace:
+            img = self._whitespace(img)
+        return img
 
 
-class MultiIM(MultiDataset):
+class MultiIM(MBasic):
     """Multi-label datasets with Img(I) and Mask(M)"""
     def __getitem__(self, idx):
         src_file = self.srcpath % self.datalist[idx]
@@ -303,7 +326,7 @@ class MultiIM(MultiDataset):
         imsave("{}/{}-{}-IM.png".format(save_dir, self.split, idx), vis_img)
 
         
-class MultiIMS(MultiDataset):
+class MultiIMS(MBasic):
     """Multi-label datasets with Img(I), Mask(M) and 1/8 Sub-Mask(S)
        required data format for MC-FCN \
        "Automatic Building Segmentation of Aerial Imagery Using Multi-Constraint Fully Convolutional Networks. \
@@ -350,8 +373,45 @@ class MultiIMS(MultiDataset):
             os.makedirs(save_dir)
         imsave("{}/{}-{}-IMS.png".format(save_dir, self.split, idx), vis_img)
 
+
+class MultiIE(MBasic):
+    """Multi-label datasets with Img(I) and Edge(E)
+    """
+    def __getitem__(self, idx):
+        src_file = self.srcpath % self.datalist[idx]
+        tar_file = self.tarpath % self.datalist[idx]
+
+        src = imread(src_file)
+        tar = imread(tar_file)
+        assert len(tar.shape) == 2, "Mask should be 2D."
+        tar = vision.shift_edge(tar, self.tar_ch)
+        # src => uint8 to float tensor
+        src = (src / 255).transpose((2, 0, 1))
+        src = torch.from_numpy(src).float()
+        # tar => float to float tensor
+        tar = tar.transpose((2, 0, 1))
+        tar = torch.from_numpy(tar).float()
+        sample = {"src":src,
+                  "tar":tar,
+                 }
+        return sample
+
+    def show(self, idx):
+        sample = self.__getitem__(idx)
+        # tensor to array
+        src = sample['src'].numpy().transpose((1, 2, 0))
+        tar = sample['tar'].numpy().transpose((1, 2, 0))
+        # convert array to RGB img
+        src_img = self._src2img(src)
+        tar_img = self._tar2img(tar)
+        vis_img = self._whitespace(np.concatenate([src_img, tar_img], axis=1))
+        save_dir = os.path.join(DIR, "../example", self.root)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        imsave("{}/{}-{}-IE.png".format(save_dir, self.split, idx), vis_img)
+
         
-class MultiIME(MultiDataset):
+class MultiIME(MBasic):
     """Multi-label datasets with Img(I), Mask(M) and Edge(E)
        required data format for BR-Net \
        "A Boundary Regulated Network for Accurate Roof Segmentation and Outline Extraction \
@@ -401,10 +461,10 @@ def load_dataset(root, mode):
     """
     Args:
         root (str): root of dataset
-        mode (str): ['IM', 'IMS', 'IME'] of dataset
+        mode (str): ['IM', 'IMS', 'IE', 'IME'] of dataset
     """
     
-    if root == "NZ32km2":
+    if "NZ32km2" in root:
         version = "Binary"
     else:
         version = "Multi"
@@ -422,17 +482,17 @@ if __name__ == "__main__":
                         help='index of sample image')
     args = parser.parse_args()
     idx = args.idx
-    for root in ['NZ32km2', 'Vaihingen', 'PotsdamRGB', 'PotsdamRGB', 'PotsdamIRRG']:
-        for mode in ["IM", "IMS", "IME"]:
+    folders = ['NZ32km2-slc', 'NZ32km2-vec', 'Vaihingen', 'PotsdamRGB', 'PotsdamRGB', 'PotsdamIRRG']
+    for root in folders:
+        for mode in ["IM", "IMS", "IE", "IME"]:
             print("Load {}/{}.".format(root, mode))
             trainset, valset = load_dataset(root, mode)
-            
-            # print("Load train set = {} examples, val set = {} examples".format(
-            #     len(trainset), len(valset)))
+            print("\ttrain set = {} examples, val set = {} examples".format(
+                len(trainset), len(valset)))
             sample = trainset[idx]
             trainset.show(idx)
             sample = valset[idx]
             valset.show(idx)
             print("\tsrc:", sample["src"].shape,
-                  "tar:", sample["tar"].shape,)
+                  ", tar:", sample["tar"].shape,)
 

@@ -46,7 +46,7 @@ def img_to_cls(img, cmap):
     nb_class = cmap.shape[0]
     img_cls = np.zeros((rows, cols), "uint8")
     for cls in range(nb_class):
-        img_tmp = np.ones((rows, cols, 3), "uint8") * cls
+        img_tmp = np.ones((rows, cols), "uint8") * cls
         img_tmp = cmap[img_tmp]
         img_consit = np.sum(img_tmp == img, axis=-1)
         img_cls[img_consit == 3] = cls
@@ -289,13 +289,13 @@ def ytensor_to_slices(tensors, cmap):
     return arr
 
 
-def natural_sort(l):
+def natural_sort(unsorted_list):
     # refer to  https://stackoverflow.com/questions/4836710/does-python-have-a-built-in-function-for-string-natural-sort
     def convert(text): return int(text) if text.isdigit() else text
 
     def alphanum_key(key): return [convert(c)
                                    for c in re.split('([0-9]+)', key)]
-    return sorted(l, key=alphanum_key)
+    return sorted(unsorted_list, key=alphanum_key)
 
 
 def array_to_img(img_array, denoise):
@@ -431,10 +431,12 @@ def shift_edge(img, nb_class=1):
 def canny_edge(img, sigma=1):
     """
     args:
-        img : 2-d ndarray in [img_rows, img_cols], dtype as unit8
+        img : 2D or 3D array
     return:
         edge: outline of image
     """
+    if len(img.shape) == 3:
+        img = rgb2gray(img)
     edge_bool = feature.canny(img, sigma)
     edge_img = np.zeros((edge_bool.shape), np.uint8)
     edge_img[edge_bool] = 255
