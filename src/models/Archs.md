@@ -35,7 +35,7 @@ Fully Convolutional Networks for Semantic Segmentation
 ## U-Net
 
 > ### a> Architecture
- ![architecture](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/u-net-architecture.png)
+ ![architecture](https://miro.medium.com/max/936/1*dKPBgCdJx6zj3MpED3lcNA.png)
 > ### b> Paper
  [LINK](https://arxiv.org/pdf/1505.04597.pdf)
 > ### c> Source code
