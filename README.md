@@ -82,19 +82,13 @@ Geoseg
 
 ### Visualization 
 
-[LINK](./logs/snapshot)
+[Snapshots](./logs/snapshot)
 
-- Learning Curve (BR-Net on NZ32km2)
-![FCN8s training curve](./logs/curve/BRNet-3*1*24-NZ32km2_iter_5000.png)
+[Learning Curve](./logs/curve)
 
-- Binary Segmentation (BRNet-3\*1\*24-NZ32km2)
-![FCN8s NZ32km2](./logs/snapshot/BRNet-3*1*24-NZ32km2/BRNet-3*1*24-NZ32km2_iter-05000.png)
 
-- Learning Curve (BRNet on Vaihingen)
-![FCN8s training curve](./logs/curve/BRNet-3*6*24-Vaihingen_iter_5000.png)
-
-- Multi-class Segmentation (BRNet-3\*6\*24-Vaihingen)
-![FCN8s Vaihingen](./logs/snapshot/BRNet-3*6*24-Vaihingen/BRNet-3*6*24-Vaihingen_iter-05000.png)
+- BR-Net on NZ32km2
+![BR-Net](./result/single/BR-Net_canny_segmap_edge_0.png)
 
 
 ### TODO
