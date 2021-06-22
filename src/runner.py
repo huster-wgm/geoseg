@@ -12,11 +12,12 @@ import metrics
 import losses
 import numpy as np
 import pandas as pd
-import warnings
+from skimage.io import imsave
 
 import torch
 from torch.utils.data import DataLoader
 
+import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
@@ -32,7 +33,6 @@ if not os.path.exists(Logs_DIR):
 
 if not os.path.exists(Checkpoint_DIR):
     os.mkdir(Checkpoint_DIR)
-
 
 
 class Base(object):
@@ -116,7 +116,7 @@ class Base(object):
             tar: (tensor) tensor of tar
             gen: (tensor) tensor of gen
         """
-        from skimage.io import imsave
+
         # transfer to cpu
         if self.args.cuda:
             src = src.cpu()
@@ -165,7 +165,6 @@ class Trainer(Base):
         net.train()
         trn_loss, trn_acc = [], []
         start = time.time()
-        selector = losses.NearestSelector(shift=5)
         for epoch in range(1, args.epochs + 1):
             self.epoch = epoch
             # setup data loader
@@ -184,7 +183,6 @@ class Trainer(Base):
                     y = y.cuda()
                 # forwading
                 gen_y = net(x)
-                gen_y, y = selector.crop(gen_y, y)
                 loss = self.criterion(gen_y, y)
                 # update parameters
                 net.optimizer.zero_grad()
@@ -239,7 +237,6 @@ class Trainer(Base):
         val_loss, val_acc = [], []
         start = time.time()
         net.eval()
-        selector = losses.NearestSelector(shift=5)
         with torch.set_grad_enabled(False):
             for idx, sample in enumerate(data_loader):
                 # get tensors from sample
@@ -252,7 +249,6 @@ class Trainer(Base):
                 gen_y = net(x)
                 if self.is_multi:
                     gen_y = gen_y[0]
-                gen_y, y = selector.crop(gen_y, y)
                 val_loss.append(self.criterion(gen_y.detach(), y.detach()).item())
                 val_acc.append(self.evaluator(gen_y.detach(), y.detach())[0].item())
 
